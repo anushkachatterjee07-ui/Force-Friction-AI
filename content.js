@@ -1,79 +1,125 @@
-// content.js — Focus Friction AI (Minimal Bulletproof Version)
-// Runs in ISOLATED world after document_end (body is guaranteed to exist)
+// content.js — Focus Friction AI
+// Uses a dark, high-contrast overlay that is impossible to miss.
 
 (function run() {
-    const CONTAINER_ID = 'ff-overlay';
-    const STYLE_ID     = 'ff-style';
+    var OVERLAY_ID = 'ff-overlay';
+    var STYLE_ID   = 'ff-style';
 
-    // ── 1. Inject CSS via <style> tag ─────────────────────────────────────────
     function injectStyle() {
         if (document.getElementById(STYLE_ID)) return;
 
         var s = document.createElement('style');
         s.id = STYLE_ID;
-        s.textContent = [
-            '#' + CONTAINER_ID + '{',
-            '  position:fixed!important;',
-            '  top:0!important;left:0!important;',
-            '  width:100vw!important;height:100vh!important;',
-            '  background:rgba(255,255,255,0.65)!important;',
-            '  backdrop-filter:blur(30px)!important;',
-            '  -webkit-backdrop-filter:blur(30px)!important;',
-            '  z-index:2147483647!important;',
-            '  pointer-events:all!important;',
-            '  display:flex!important;',
-            '  align-items:center!important;',
-            '  justify-content:center!important;',
-            '}',
-            '#' + CONTAINER_ID + ' h1{',
-            '  font-family:system-ui,-apple-system,sans-serif!important;',
-            '  font-size:2.8rem!important;',
-            '  font-weight:800!important;',
-            '  color:#111!important;',
-            '  background:rgba(255,255,255,0.92)!important;',
-            '  padding:2rem 3.5rem!important;',
-            '  border-radius:16px!important;',
-            '  box-shadow:0 20px 60px rgba(0,0,0,0.25)!important;',
-            '  margin:0!important;',
-            '  user-select:none!important;',
-            '  text-align:center!important;',
-            '}'
-        ].join('');
 
-        // Append to <head> if available, else <html>
+        // DARK overlay — impossible to miss visually.
+        // backdrop-filter blurs what's behind. We also add background so it
+        // renders even when backdrop-filter is unsupported.
+        s.textContent =
+            '#' + OVERLAY_ID + '{' +
+                'position:fixed!important;' +
+                'top:0!important;' +
+                'left:0!important;' +
+                'width:100vw!important;' +
+                'height:100vh!important;' +
+                'background:rgba(15,15,20,0.82)!important;' +
+                'backdrop-filter:blur(18px) saturate(180%)!important;' +
+                '-webkit-backdrop-filter:blur(18px) saturate(180%)!important;' +
+                'z-index:2147483647!important;' +
+                'pointer-events:all!important;' +
+                'display:flex!important;' +
+                'align-items:center!important;' +
+                'justify-content:center!important;' +
+                'margin:0!important;' +
+                'padding:0!important;' +
+                'box-sizing:border-box!important;' +
+            '}' +
+            '#' + OVERLAY_ID + ' .ff-card{' +
+                'background:rgba(255,255,255,0.97)!important;' +
+                'border-radius:20px!important;' +
+                'padding:3rem 5rem!important;' +
+                'box-shadow:0 30px 80px rgba(0,0,0,0.6)!important;' +
+                'text-align:center!important;' +
+                'max-width:600px!important;' +
+            '}' +
+            '#' + OVERLAY_ID + ' .ff-title{' +
+                'display:block!important;' +
+                'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;' +
+                'font-size:2.6rem!important;' +
+                'font-weight:800!important;' +
+                'color:#0f0f14!important;' +
+                'margin:0 0 0.5rem 0!important;' +
+                'line-height:1.2!important;' +
+                'user-select:none!important;' +
+            '}' +
+            '#' + OVERLAY_ID + ' .ff-sub{' +
+                'display:block!important;' +
+                'font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif!important;' +
+                'font-size:1rem!important;' +
+                'color:#555!important;' +
+                'margin:0!important;' +
+                'user-select:none!important;' +
+            '}';
+
         (document.head || document.documentElement).appendChild(s);
     }
 
-    // ── 2. Inject DIV overlay using pure DOM API (no innerHTML / no raw strings)
     function injectOverlay() {
-        if (document.getElementById(CONTAINER_ID)) return;
+        if (document.getElementById(OVERLAY_ID)) return;
+        if (!document.body) return;
 
-        var div = document.createElement('div');
-        div.id = CONTAINER_ID;
+        var wrapper = document.createElement('div');
+        wrapper.id = OVERLAY_ID;
 
-        var h1 = document.createElement('h1');
-        h1.textContent = 'Focus-Friction Active.';
+        var card = document.createElement('div');
+        card.className = 'ff-card';
 
-        div.appendChild(h1);
+        var title = document.createElement('span');
+        title.className = 'ff-title';
+        title.textContent = 'Focus-Friction Active.';
 
-        // Append to <body> — guaranteed to exist because run_at: document_end
-        document.body.appendChild(div);
+        var sub = document.createElement('span');
+        sub.className = 'ff-sub';
+        sub.textContent = 'This site is blocked to keep you focused.';
+
+        card.appendChild(title);
+        card.appendChild(sub);
+        wrapper.appendChild(card);
+
+        // Append to BODY as last child — makes it sit on top of everything
+        document.body.appendChild(wrapper);
     }
 
-    // ── 3. Combined enforce function ──────────────────────────────────────────
     function enforce() {
         injectStyle();
         injectOverlay();
+
+        // Also lock scrolling so nothing underneath can shift
+        if (document.documentElement) {
+            document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+        }
+        if (document.body) {
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+        }
     }
 
-    // First call immediately
+    // Immediate attempt
     enforce();
 
-    // ── 4. MutationObserver — reacts instantly if YouTube removes our nodes ──
-    var observer = new MutationObserver(enforce);
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    // DOMContentLoaded safety net
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', enforce);
+    }
 
-    // ── 5. Interval safety net — 300 ms polling keeps it alive across SPA navs
-    setInterval(enforce, 300);
+    // Rapid-fire interval to win against YouTube's SPA re-renders
+    setInterval(enforce, 250);
+
+    // MutationObserver to react the instant our node disappears
+    var observer = new MutationObserver(function() {
+        if (!document.getElementById(OVERLAY_ID) || !document.getElementById(STYLE_ID)) {
+            enforce();
+        }
+    });
+
+    observer.observe(document.documentElement, { childList: true, subtree: true });
 
 }());
