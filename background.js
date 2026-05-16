@@ -1,25 +1,23 @@
-// background.js
+// background.js — Focus Friction AI
+// Service Worker: re-injects content.js on SPA navigations (URL changes
+// that don't trigger a full page reload, e.g. YouTube's router).
 
-/**
- * Service Worker to listen for tab updates.
- * This is crucial for Single Page Applications (SPAs) like YouTube and Instagram.
- * When a user clicks a video on YouTube, the page doesn't fully reload; it just pushes a new URL state.
- * By listening to `chrome.tabs.onUpdated`, we can catch these soft navigations and re-trigger our overlay.
- */
+const TARGET_SITES = ['youtube.com', 'instagram.com', 'tiktok.com'];
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    // Trigger if the URL was updated (SPA navigation) OR if the tab status fully completed loading
+    // Fire on URL change (SPA soft-nav) OR when tab finishes loading
     if (changeInfo.url || changeInfo.status === 'complete') {
-        
-        // Check if the current URL belongs to our targeted distracting sites
-        if (tab.url && (tab.url.includes("youtube.com") || tab.url.includes("instagram.com"))) {
-            
-            // Dynamically inject the content script to ensure the overlay applies
+
+        const url = tab.url || changeInfo.url || '';
+        const isTarget = TARGET_SITES.some(site => url.includes(site));
+
+        if (isTarget) {
             chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ["content.js"]
+                target: { tabId },
+                files: ['content.js']
             }).catch(err => {
-                // Silently drop errors if we try to inject into protected pages (like chrome:// URLs)
-                console.debug("Focus Friction: Injection skipped/failed for this tab.", err);
+                // Silently ignore injections into chrome:// or protected pages
+                console.debug('Focus Friction: injection skipped.', err.message);
             });
         }
     }

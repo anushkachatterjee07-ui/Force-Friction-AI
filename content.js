@@ -1,170 +1,209 @@
-// content.js - Intentionality Barrier
-(async function run() {
-    const TARGET_SITES = ['youtube.com', 'instagram.com', 'tiktok.com'];
-    const hostname = window.location.hostname;
-    
-    // 1. Detect navigation to target sites
-    const isTarget = TARGET_SITES.some(site => hostname.includes(site));
-    if (!isTarget) return;
+// content.js — Focus Friction AI
+// Polls the local FastAPI backend every 2 seconds.
+// LOCKED  → heavyForceBlock() keeps the barrier active
+// UNLOCKED → barrier is removed so the user can browse
+// Fetch error → default to LOCKED (fail-safe, un-bypassable)
 
-    const CONTAINER_ID = 'ff-intentional-barrier';
-    const siteName = hostname.replace('www.', '');
+(function () {
+    'use strict';
 
-    // 2. Inject a full-screen overlay BEFORE page loads 
-    // (We use document.documentElement since body might not exist yet if run_at is document_start)
-    if (document.getElementById(CONTAINER_ID)) return;
+    const BARRIER_ID  = 'ff-barrier';
+    const STYLE_ID    = 'ff-barrier-style';
+    const API_STATUS  = 'http://127.0.0.1:8000/api/status';
+    const POLL_MS     = 2000;
 
-    const overlay = document.createElement('div');
-    overlay.id = CONTAINER_ID;
-    
-    // Reflective, non-shaming tone CSS
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw; height: 100vh;
-        background: rgba(18, 20, 24, 0.96);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        z-index: 2147483647;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #E2E8F0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    `;
+    /* ─────────────────────────────────────────────
+       heavyForceBlock()
+       Injects a solid dark-gray full-screen curtain
+       that cannot be scrolled past or clicked through.
+    ───────────────────────────────────────────── */
+    function heavyForceBlock() {
+        injectStyle();
 
-    const card = document.createElement('div');
-    card.style.cssText = `
-        background: rgba(255, 255, 255, 0.05);
-        padding: 40px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        text-align: center;
-        max-width: 500px;
-        width: 90%;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    `;
+        // Re-attach if removed by the page's own JS
+        if (!document.getElementById(BARRIER_ID)) {
+            const barrier = document.createElement('div');
+            barrier.id = BARRIER_ID;
 
-    const title = document.createElement('h1');
-    title.textContent = "Take a breath.";
-    title.style.cssText = "font-size: 26px; font-weight: 600; margin-bottom: 8px; color: #F8FAFC; margin-top: 0;";
+            const card = document.createElement('div');
+            card.className = 'ff-card';
 
-    const subtitle = document.createElement('p');
-    subtitle.innerHTML = `You're about to open <strong>${siteName}</strong>.<br>Fetching today's visits...`;
-    subtitle.style.cssText = "font-size: 16px; color: #94A3B8; margin-bottom: 24px; line-height: 1.5;";
+            const icon = document.createElement('div');
+            icon.className = 'ff-icon';
+            icon.textContent = '🔒';
 
-    const promptText = document.createElement('div');
-    promptText.textContent = "Why are you opening this site right now?";
-    promptText.style.cssText = "font-size: 15px; font-weight: 500; color: #CBD5E1; margin-bottom: 12px; text-align: left;";
+            const title = document.createElement('div');
+            title.className = 'ff-title';
+            title.textContent = 'Focus-Friction Active.';
 
-    const textarea = document.createElement('textarea');
-    textarea.placeholder = "e.g., I need to watch a tutorial on...";
-    textarea.style.cssText = `
-        width: 100%;
-        height: 100px;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 14px;
-        color: #F8FAFC;
-        font-family: inherit;
-        font-size: 15px;
-        resize: none;
-        outline: none;
-        box-sizing: border-box;
-        margin-bottom: 24px;
-        transition: border-color 0.2s;
-    `;
+            const sub = document.createElement('div');
+            sub.className = 'ff-sub';
+            sub.textContent = 'This site is locked. Stay focused.';
 
-    const button = document.createElement('button');
-    button.textContent = "Continue";
-    button.disabled = true;
-    button.style.cssText = `
-        width: 100%;
-        padding: 14px;
-        background: #3B82F6;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: not-allowed;
-        opacity: 0.5;
-        transition: all 0.2s;
-    `;
+            const dot = document.createElement('div');
+            dot.className = 'ff-dot-wrap';
 
-    // 4. User must type 10+ characters to enable "Continue" button
-    textarea.addEventListener('input', () => {
-        if (textarea.value.trim().length >= 10) {
-            button.disabled = false;
-            button.style.cursor = 'pointer';
-            button.style.opacity = '1';
-            textarea.style.borderColor = '#3B82F6';
-        } else {
-            button.disabled = true;
-            button.style.cursor = 'not-allowed';
-            button.style.opacity = '0.5';
-            textarea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        }
-    });
+            for (let i = 0; i < 3; i++) {
+                const d = document.createElement('span');
+                d.className = 'ff-dot';
+                dot.appendChild(d);
+            }
 
-    // 5. On click, POST {site, reason, timestamp} to http://127.0.0.1:8000/log-intent
-    button.addEventListener('click', async () => {
-        const reason = textarea.value.trim();
-        const payload = {
-            site: siteName,
-            reason: reason,
-            timestamp: new Date().toISOString()
-        };
+            card.appendChild(icon);
+            card.appendChild(title);
+            card.appendChild(sub);
+            card.appendChild(dot);
+            barrier.appendChild(card);
 
-        button.textContent = "Logging...";
-        button.style.opacity = '0.7';
-
-        try {
-            await fetch('http://127.0.0.1:8000/log-intent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        } catch (e) {
-            // 7. If API fails, still allow access but log error to console - no punitive blocking
-            console.error("Focus Friction: Failed to log intent to backend. Allowing access.", e);
+            // Use documentElement so it works even before <body> exists
+            (document.body || document.documentElement).appendChild(barrier);
         }
 
-        // 6. After successful API call (or fail), remove overlay and allow normal browsing
-        overlay.remove();
-        
-        // Restore scrolling if it was disabled
-        document.body.style.overflow = '';
-    });
-
-    card.appendChild(title);
-    card.appendChild(subtitle);
-    card.appendChild(promptText);
-    card.appendChild(textarea);
-    card.appendChild(button);
-    overlay.appendChild(card);
-
-    // Append immediately
-    document.documentElement.appendChild(overlay);
-
-    // Disable scrolling while overlay is active
-    if (document.body) document.body.style.overflow = 'hidden';
-
-    // Focus the textarea
-    setTimeout(() => textarea.focus(), 100);
-
-    // Fetch stats in the background to update the subtitle
-    try {
-        const statsRes = await fetch(`http://127.0.0.1:8000/stats?site=${siteName}`);
-        if (statsRes.ok) {
-            const stats = await statsRes.json();
-            const visitCount = stats.visits_today || 0;
-            subtitle.innerHTML = `You're about to open <strong>${siteName}</strong>.<br>You've visited ${visitCount} time${visitCount === 1 ? '' : 's'} today.`;
-        }
-    } catch (e) {
-        console.warn("Focus Friction: Could not fetch stats.", e);
-        subtitle.innerHTML = `You're about to open <strong>${siteName}</strong>.<br>Be mindful of your time.`;
+        // Lock scrolling
+        const root = document.documentElement;
+        if (root) root.style.setProperty('overflow', 'hidden', 'important');
+        if (document.body) document.body.style.setProperty('overflow', 'hidden', 'important');
     }
+
+    /* ─────────────────────────────────────────────
+       removeBarrier()
+       Completely removes the overlay and restores scroll.
+    ───────────────────────────────────────────── */
+    function removeBarrier() {
+        const barrier = document.getElementById(BARRIER_ID);
+        if (barrier) barrier.remove();
+
+        const style = document.getElementById(STYLE_ID);
+        if (style) style.remove();
+
+        // Restore scrolling
+        if (document.documentElement) document.documentElement.style.overflow = '';
+        if (document.body) document.body.style.overflow = '';
+    }
+
+    /* ─────────────────────────────────────────────
+       injectStyle()
+       Injects CSS once — safe to call repeatedly.
+    ───────────────────────────────────────────── */
+    function injectStyle() {
+        if (document.getElementById(STYLE_ID)) return;
+
+        const s = document.createElement('style');
+        s.id = STYLE_ID;
+        s.textContent = `
+            #${BARRIER_ID} {
+                position: fixed !important;
+                inset: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                background: #1a1a1f !important;
+                z-index: 2147483647 !important;
+                pointer-events: all !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            }
+            #${BARRIER_ID} .ff-card {
+                background: #25252d !important;
+                border: 1px solid rgba(255,255,255,0.08) !important;
+                border-radius: 20px !important;
+                padding: 3rem 4rem !important;
+                text-align: center !important;
+                max-width: 480px !important;
+                width: 90% !important;
+                box-shadow: 0 32px 80px rgba(0,0,0,0.6) !important;
+                user-select: none !important;
+            }
+            #${BARRIER_ID} .ff-icon {
+                font-size: 3rem !important;
+                margin-bottom: 1rem !important;
+                display: block !important;
+            }
+            #${BARRIER_ID} .ff-title {
+                display: block !important;
+                font-size: 1.8rem !important;
+                font-weight: 700 !important;
+                color: #f1f1f1 !important;
+                margin: 0 0 0.5rem !important;
+                letter-spacing: -0.02em !important;
+            }
+            #${BARRIER_ID} .ff-sub {
+                display: block !important;
+                font-size: 0.95rem !important;
+                color: #888 !important;
+                margin: 0 0 1.6rem !important;
+            }
+            #${BARRIER_ID} .ff-dot-wrap {
+                display: flex !important;
+                justify-content: center !important;
+                gap: 8px !important;
+            }
+            #${BARRIER_ID} .ff-dot {
+                display: inline-block !important;
+                width: 8px !important;
+                height: 8px !important;
+                border-radius: 50% !important;
+                background: #444 !important;
+                animation: ff-pulse 1.4s ease-in-out infinite !important;
+            }
+            #${BARRIER_ID} .ff-dot:nth-child(2) { animation-delay: 0.2s !important; }
+            #${BARRIER_ID} .ff-dot:nth-child(3) { animation-delay: 0.4s !important; }
+            @keyframes ff-pulse {
+                0%, 80%, 100% { background: #444 !important; transform: scale(1) !important; }
+                40%            { background: #6366f1 !important; transform: scale(1.4) !important; }
+            }
+        `;
+
+        (document.head || document.documentElement).appendChild(s);
+    }
+
+    /* ─────────────────────────────────────────────
+       pollStatus()
+       Hits /api/status and applies LOCKED / UNLOCKED logic.
+       On any network failure → stays LOCKED (fail-safe).
+    ───────────────────────────────────────────── */
+    async function pollStatus() {
+        try {
+            const response = await fetch(API_STATUS, {
+                method: 'GET',
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!response.ok) {
+                // Non-2xx from our own server → treat as LOCKED
+                console.warn(`Focus Friction: /api/status returned ${response.status}. Defaulting to LOCKED.`);
+                heavyForceBlock();
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'UNLOCKED') {
+                removeBarrier();
+            } else {
+                // "LOCKED" or any unexpected value → block
+                heavyForceBlock();
+            }
+
+        } catch (err) {
+            // Network error / server down → fail-safe: keep LOCKED
+            console.warn('Focus Friction: Could not reach backend. Defaulting to LOCKED.', err.message);
+            heavyForceBlock();
+        }
+    }
+
+    /* ─────────────────────────────────────────────
+       Bootstrap
+       • Immediately block on first run
+       • Then poll every 2 s
+    ───────────────────────────────────────────── */
+    heavyForceBlock();          // instant block before first poll completes
+    pollStatus();               // first async check right away
+    setInterval(pollStatus, POLL_MS);   // continuous 2-second loop
 
 })();
