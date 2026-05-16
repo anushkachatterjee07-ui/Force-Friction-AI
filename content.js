@@ -2,8 +2,9 @@
 // Runs in ISOLATED world after document_end (body is guaranteed to exist)
 
 (function run() {
-    const CONTAINER_ID = 'ff-overlay';
+    const CONTAINER_ID = 'ff-barrier';
     const STYLE_ID     = 'ff-style';
+    let isLocked       = true; // Default to locked state for safety
 
     // ── 1. Inject CSS via <style> tag ─────────────────────────────────────────
     function injectStyle() {
@@ -60,20 +61,54 @@
         document.body.appendChild(div);
     }
 
-    // ── 3. Combined enforce function ──────────────────────────────────────────
-    function enforce() {
+    // ── 3. Overlay Toggling Logic ─────────────────────────────────────────────
+    function heavyForceBlock() {
         injectStyle();
         injectOverlay();
     }
+    
+    function removeBlock() {
+        const barrier = document.getElementById(CONTAINER_ID);
+        if (barrier) {
+            barrier.remove();
+        }
+    }
 
-    // First call immediately
-    enforce();
+    // ── 4. Server Polling Logic ───────────────────────────────────────────────
+    function checkServerStatus() {
+        fetch('http://127.0.0.1:8000/api/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "UNLOCKED") {
+                    isLocked = false;
+                    removeBlock();
+                } else {
+                    // Default to LOCKED
+                    isLocked = true;
+                    heavyForceBlock();
+                }
+            })
+            .catch(err => {
+                // If backend is down or loading, default to keeping page locked
+                isLocked = true;
+                heavyForceBlock();
+            });
+    }
 
-    // ── 4. MutationObserver — reacts instantly if YouTube removes our nodes ──
-    var observer = new MutationObserver(enforce);
+    // Poll every 2 seconds
+    setInterval(checkServerStatus, 2000);
+    // Initial check
+    checkServerStatus();
+
+    // ── 5. MutationObserver — reacts instantly if YouTube removes our nodes ──
+    var observer = new MutationObserver(() => {
+        if (isLocked) heavyForceBlock();
+    });
     observer.observe(document.documentElement, { childList: true, subtree: true });
 
-    // ── 5. Interval safety net — 300 ms polling keeps it alive across SPA navs
-    setInterval(enforce, 300);
+    // ── 6. Interval safety net — 300 ms polling keeps it alive across SPA navs
+    setInterval(() => {
+        if (isLocked) heavyForceBlock();
+    }, 300);
 
 }());
