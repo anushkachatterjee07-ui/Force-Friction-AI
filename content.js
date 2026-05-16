@@ -1,114 +1,170 @@
-// content.js — Focus Friction AI (Minimal Bulletproof Version)
-// Runs in ISOLATED world after document_end (body is guaranteed to exist)
-
-(function run() {
-    const CONTAINER_ID = 'ff-barrier';
-    const STYLE_ID     = 'ff-style';
-    let isLocked       = true; // Default to locked state for safety
-
-    // ── 1. Inject CSS via <style> tag ─────────────────────────────────────────
-    function injectStyle() {
-        if (document.getElementById(STYLE_ID)) return;
-
-        var s = document.createElement('style');
-        s.id = STYLE_ID;
-        s.textContent = [
-            '#' + CONTAINER_ID + '{',
-            '  position:fixed!important;',
-            '  top:0!important;left:0!important;',
-            '  width:100vw!important;height:100vh!important;',
-            '  background:rgba(255,255,255,0.65)!important;',
-            '  backdrop-filter:blur(30px)!important;',
-            '  -webkit-backdrop-filter:blur(30px)!important;',
-            '  z-index:2147483647!important;',
-            '  pointer-events:all!important;',
-            '  display:flex!important;',
-            '  align-items:center!important;',
-            '  justify-content:center!important;',
-            '}',
-            '#' + CONTAINER_ID + ' h1{',
-            '  font-family:system-ui,-apple-system,sans-serif!important;',
-            '  font-size:2.8rem!important;',
-            '  font-weight:800!important;',
-            '  color:#111!important;',
-            '  background:rgba(255,255,255,0.92)!important;',
-            '  padding:2rem 3.5rem!important;',
-            '  border-radius:16px!important;',
-            '  box-shadow:0 20px 60px rgba(0,0,0,0.25)!important;',
-            '  margin:0!important;',
-            '  user-select:none!important;',
-            '  text-align:center!important;',
-            '}'
-        ].join('');
-
-        // Append to <head> if available, else <html>
-        (document.head || document.documentElement).appendChild(s);
-    }
-
-    // ── 2. Inject DIV overlay using pure DOM API (no innerHTML / no raw strings)
-    function injectOverlay() {
-        if (document.getElementById(CONTAINER_ID)) return;
-
-        var div = document.createElement('div');
-        div.id = CONTAINER_ID;
-
-        var h1 = document.createElement('h1');
-        h1.textContent = 'Focus-Friction Active.';
-
-        div.appendChild(h1);
-
-        // Append to <body> — guaranteed to exist because run_at: document_end
-        document.body.appendChild(div);
-    }
-
-    // ── 3. Overlay Toggling Logic ─────────────────────────────────────────────
-    function heavyForceBlock() {
-        injectStyle();
-        injectOverlay();
-    }
+// content.js - Intentionality Barrier
+(async function run() {
+    const TARGET_SITES = ['youtube.com', 'instagram.com', 'tiktok.com'];
+    const hostname = window.location.hostname;
     
-    function removeBlock() {
-        const barrier = document.getElementById(CONTAINER_ID);
-        if (barrier) {
-            barrier.remove();
+    // 1. Detect navigation to target sites
+    const isTarget = TARGET_SITES.some(site => hostname.includes(site));
+    if (!isTarget) return;
+
+    const CONTAINER_ID = 'ff-intentional-barrier';
+    const siteName = hostname.replace('www.', '');
+
+    // 2. Inject a full-screen overlay BEFORE page loads 
+    // (We use document.documentElement since body might not exist yet if run_at is document_start)
+    if (document.getElementById(CONTAINER_ID)) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = CONTAINER_ID;
+    
+    // Reflective, non-shaming tone CSS
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(18, 20, 24, 0.96);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 2147483647;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #E2E8F0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    `;
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+        background: rgba(255, 255, 255, 0.05);
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    `;
+
+    const title = document.createElement('h1');
+    title.textContent = "Take a breath.";
+    title.style.cssText = "font-size: 26px; font-weight: 600; margin-bottom: 8px; color: #F8FAFC; margin-top: 0;";
+
+    const subtitle = document.createElement('p');
+    subtitle.innerHTML = `You're about to open <strong>${siteName}</strong>.<br>Fetching today's visits...`;
+    subtitle.style.cssText = "font-size: 16px; color: #94A3B8; margin-bottom: 24px; line-height: 1.5;";
+
+    const promptText = document.createElement('div');
+    promptText.textContent = "Why are you opening this site right now?";
+    promptText.style.cssText = "font-size: 15px; font-weight: 500; color: #CBD5E1; margin-bottom: 12px; text-align: left;";
+
+    const textarea = document.createElement('textarea');
+    textarea.placeholder = "e.g., I need to watch a tutorial on...";
+    textarea.style.cssText = `
+        width: 100%;
+        height: 100px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 14px;
+        color: #F8FAFC;
+        font-family: inherit;
+        font-size: 15px;
+        resize: none;
+        outline: none;
+        box-sizing: border-box;
+        margin-bottom: 24px;
+        transition: border-color 0.2s;
+    `;
+
+    const button = document.createElement('button');
+    button.textContent = "Continue";
+    button.disabled = true;
+    button.style.cssText = `
+        width: 100%;
+        padding: 14px;
+        background: #3B82F6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: not-allowed;
+        opacity: 0.5;
+        transition: all 0.2s;
+    `;
+
+    // 4. User must type 10+ characters to enable "Continue" button
+    textarea.addEventListener('input', () => {
+        if (textarea.value.trim().length >= 10) {
+            button.disabled = false;
+            button.style.cursor = 'pointer';
+            button.style.opacity = '1';
+            textarea.style.borderColor = '#3B82F6';
+        } else {
+            button.disabled = true;
+            button.style.cursor = 'not-allowed';
+            button.style.opacity = '0.5';
+            textarea.style.borderColor = 'rgba(255, 255, 255, 0.2)';
         }
-    }
-
-    // ── 4. Server Polling Logic ───────────────────────────────────────────────
-    function checkServerStatus() {
-        fetch('http://127.0.0.1:8000/api/status')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "UNLOCKED") {
-                    isLocked = false;
-                    removeBlock();
-                } else {
-                    // Default to LOCKED
-                    isLocked = true;
-                    heavyForceBlock();
-                }
-            })
-            .catch(err => {
-                // If backend is down or loading, default to keeping page locked
-                isLocked = true;
-                heavyForceBlock();
-            });
-    }
-
-    // Poll every 2 seconds
-    setInterval(checkServerStatus, 2000);
-    // Initial check
-    checkServerStatus();
-
-    // ── 5. MutationObserver — reacts instantly if YouTube removes our nodes ──
-    var observer = new MutationObserver(() => {
-        if (isLocked) heavyForceBlock();
     });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
 
-    // ── 6. Interval safety net — 300 ms polling keeps it alive across SPA navs
-    setInterval(() => {
-        if (isLocked) heavyForceBlock();
-    }, 300);
+    // 5. On click, POST {site, reason, timestamp} to http://127.0.0.1:8000/log-intent
+    button.addEventListener('click', async () => {
+        const reason = textarea.value.trim();
+        const payload = {
+            site: siteName,
+            reason: reason,
+            timestamp: new Date().toISOString()
+        };
 
-}());
+        button.textContent = "Logging...";
+        button.style.opacity = '0.7';
+
+        try {
+            await fetch('http://127.0.0.1:8000/log-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            // 7. If API fails, still allow access but log error to console - no punitive blocking
+            console.error("Focus Friction: Failed to log intent to backend. Allowing access.", e);
+        }
+
+        // 6. After successful API call (or fail), remove overlay and allow normal browsing
+        overlay.remove();
+        
+        // Restore scrolling if it was disabled
+        document.body.style.overflow = '';
+    });
+
+    card.appendChild(title);
+    card.appendChild(subtitle);
+    card.appendChild(promptText);
+    card.appendChild(textarea);
+    card.appendChild(button);
+    overlay.appendChild(card);
+
+    // Append immediately
+    document.documentElement.appendChild(overlay);
+
+    // Disable scrolling while overlay is active
+    if (document.body) document.body.style.overflow = 'hidden';
+
+    // Focus the textarea
+    setTimeout(() => textarea.focus(), 100);
+
+    // Fetch stats in the background to update the subtitle
+    try {
+        const statsRes = await fetch(`http://127.0.0.1:8000/stats?site=${siteName}`);
+        if (statsRes.ok) {
+            const stats = await statsRes.json();
+            const visitCount = stats.visits_today || 0;
+            subtitle.innerHTML = `You're about to open <strong>${siteName}</strong>.<br>You've visited ${visitCount} time${visitCount === 1 ? '' : 's'} today.`;
+        }
+    } catch (e) {
+        console.warn("Focus Friction: Could not fetch stats.", e);
+        subtitle.innerHTML = `You're about to open <strong>${siteName}</strong>.<br>Be mindful of your time.`;
+    }
+
+})();

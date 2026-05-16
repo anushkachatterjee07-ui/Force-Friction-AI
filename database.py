@@ -13,9 +13,15 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             event_type TEXT NOT NULL,
-            platform TEXT NOT NULL
+            platform TEXT NOT NULL,
+            reason TEXT
         )
     ''')
+    # Backward compatibility for existing databases: try to add the column
+    try:
+        cursor.execute("ALTER TABLE focus_logs ADD COLUMN reason TEXT")
+    except sqlite3.OperationalError:
+        pass # Column already exists
     conn.commit()
     conn.close()
 
@@ -73,6 +79,33 @@ def get_analytics_summary():
             "blocked_attempts": total_blocked_all_time
         }
     }
+
+def log_intent(platform: str, reason: str, timestamp_str: str):
+    """Logs the user's intent for visiting a site."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+        (timestamp_str, 'INTENT_LOGGED', platform, reason)
+    )
+    conn.commit()
+    conn.close()
+
+def get_stats(platform: str):
+    """Retrieves visit stats for a specific platform for today."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    
+    cursor.execute(
+        "SELECT COUNT(*) FROM focus_logs WHERE event_type = 'INTENT_LOGGED' AND platform = ? AND timestamp >= ?",
+        (platform, today_start)
+    )
+    visits_today = cursor.fetchone()[0]
+    conn.close()
+    
+    return {"visits_today": visits_today}
 
 # Self-initialize on import so the DB file is automatically created on startup
 init_db()

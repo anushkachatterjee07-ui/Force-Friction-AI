@@ -87,3 +87,23 @@ async def get_analytics():
     Retrieve summarized analytics for the dashboard.
     """
     return database.get_analytics_summary()
+
+class IntentRequest(BaseModel):
+    site: str
+    reason: str
+    timestamp: str
+
+@app.post("/log-intent")
+async def log_intent_endpoint(request: IntentRequest):
+    """
+    Log the user's reason for opening an addictive site.
+    """
+    database.log_intent(request.site, request.reason, request.timestamp)
+    return {"success": True, "message": "Intent logged successfully"}
+
+@app.get("/stats")
+async def get_stats_endpoint(site: str):
+    """
+    Get the visit count for a specific site today.
+    """
+    return database.get_stats(site)
