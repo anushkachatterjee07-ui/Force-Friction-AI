@@ -6,9 +6,14 @@ Force-Friction AI is a behavior-aware focus tool designed to break the cycle of 
 
 - **AI Intent Check**: Before opening addictive platforms (YouTube, Instagram, TikTok), the system asks for your intent (e.g., Work, Study, Boredom).
 - **Behavior-Aware Responses**: 
-  - **Productive Intent**: Instant access if you're there for work or learning.
-  - **Doomscrolling Detection**: If you're visiting out of habit or boredom, the AI introduces a "Mindful Pause" with real-time stats (e.g., "We've opened this 12 times in the last 3 hours").
-- **Mindful Friction**: Uses non-judgmental "we" phrasing and ends with a choice, empowering you to make a conscious decision rather than following a command.
+  - **Productive Intent Validation**: Supporting deep work with tiered feedback.
+    - *Silent Allow*: Instant access for the first few sessions.
+    - *Positive Reinforcement*: Encouraging nudges for ongoing sessions.
+    - *Mindful Escalation*: Friction if too many sessions are opened, suggesting a potential break.
+  - **Doomscrolling Detection**: 
+    - *Behavioral Nudge*: Subtle reminders for early-stage habit loops.
+    - *Mindful Friction*: Data-backed awareness pauses for high-frequency visits.
+- **Non-Judgmental Feedback**: Uses "we" phrasing and ends with a choice, empowering you to make a conscious decision rather than following a command.
 - **Deep Analytics**: Tracks visit counts, boredom-driven triggers, and session durations to help you understand your digital habits.
 
 ## 🛠️ Tech Stack
@@ -30,28 +35,24 @@ Force-Friction AI is a behavior-aware focus tool designed to break the cycle of 
    ```bash
    uvicorn main:app --reload
    ```
-   The backend will be available at `http://127.0.0.1:8000`.
 
 ### 2. Extension Setup
 1. Open Google Chrome and navigate to `chrome://extensions/`.
-2. Enable **Developer mode** (toggle in the top right).
+2. Enable **Developer mode**.
 3. Click **Load unpacked** and select the `Force-Friction-AI` project folder.
-4. The extension is now active on YouTube, Instagram, and TikTok.
-
-## 🧩 Project Structure
-
-- `main.py`: FastAPI application handling logic and state.
-- `database.py`: SQLite integration for logging intents and usage stats.
-- `content.js`: The "Friction Engine" that injects the UI and intercepts scrolling.
-- `manifest.json`: Extension configuration and permissions.
 
 ## 📜 Usage Flow
 
 1. **The Gate**: You open an addictive site.
-2. **The Intent**: A premium dark-mode card appears asking: *"Why are you opening this?"*
+2. **The Intent**: A premium card asks: *"Why are you opening this?"*
 3. **The Response**: 
-   - Select **Study** -> The barrier disappears immediately.
-   - Select **Habit** -> A message appears: *"We've visited this site 10 times in 2 hours. Do we want to continue or take a 5-minute breather?"*
+   - **Productive (Study/Work)**: 
+     - Session #1: Silent allow.
+     - Session #5: *"Study session #5. You got this."*
+     - Session #9: *"8+ study sessions open. Break or continue?"*
+   - **Habit/Boredom**:
+     - Visit #3: *"Visit #3 to instagram.com. Stay intentional."*
+     - Visit #11: *"We've opened youtube.com 11x in 2h. 5-min reset or proceed?"*
 4. **The Choice**: You decide whether to proceed or step away.
 
 ---
