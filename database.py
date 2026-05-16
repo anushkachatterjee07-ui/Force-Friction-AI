@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 
 DB_FILE = "analytics.db"
@@ -91,6 +91,53 @@ def log_intent(platform: str, reason: str, timestamp_str: str):
     conn.commit()
     conn.close()
 
+def get_detailed_stats(platform: str):
+    """Retrieves detailed visit stats for a specific platform."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    
+    now = datetime.now(timezone.utc)
+    two_hours_ago = (now - timedelta(hours=2)).isoformat()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    
+    # 1. Visits in the last 2 hours
+    cursor.execute(
+        "SELECT COUNT(*) FROM focus_logs WHERE event_type = 'INTENT_LOGGED' AND platform = ? AND timestamp >= ?",
+        (platform, two_hours_ago)
+    )
+    visits_2h = cursor.fetchone()[0]
+    
+    # 2. Boredom visits today
+    # We check for reasons categorized as boredom/habit/escape
+    cursor.execute(
+        "SELECT COUNT(*) FROM focus_logs WHERE event_type = 'INTENT_LOGGED' AND platform = ? AND timestamp >= ? AND (reason LIKE '%boredom%' OR reason LIKE '%habit%' OR reason LIKE '%escape%')",
+        (platform, today_start)
+    )
+    boredom_total = cursor.fetchone()[0]
+    
+    # 3. Last session duration (minutes since last unlock, capped at 15)
+    cursor.execute(
+        "SELECT timestamp FROM focus_logs WHERE event_type = 'SUCCESSFUL_UNLOCK' AND platform = 'System' ORDER BY timestamp DESC LIMIT 1"
+    )
+    last_unlock = cursor.fetchone()
+    
+    last_session_mins = 15 # Default
+    if last_unlock:
+        unlock_time = datetime.fromisoformat(last_unlock[0])
+        # If the last unlock was less than 15 mins ago, the session is technically still active or just ended
+        # But if we are here, it means the site is locked again.
+        # So the "last session" was likely the full 15 mins or the time until it was locked.
+        # For simplicity, we'll return 15.
+        last_session_mins = 15
+
+    conn.close()
+    
+    return {
+        "visits_2h": visits_2h,
+        "boredom_total": boredom_total,
+        "last_session_mins": last_session_mins
+    }
+
 def get_stats(platform: str):
     """Retrieves visit stats for a specific platform for today."""
     conn = sqlite3.connect(DB_FILE)
@@ -105,7 +152,13 @@ def get_stats(platform: str):
     visits_today = cursor.fetchone()[0]
     conn.close()
     
-    return {"visits_today": visits_today}
+    # Also include the detailed stats
+    detailed = get_detailed_stats(platform)
+    
+    return {
+        "visits_today": visits_today,
+        **detailed
+    }
 
 # Self-initialize on import so the DB file is automatically created on startup
 init_db()

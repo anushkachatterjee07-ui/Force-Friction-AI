@@ -93,13 +93,87 @@ class IntentRequest(BaseModel):
     reason: str
     timestamp: str
 
+def generate_awareness_message(site, reason, visits_2h, boredom_total, last_session_mins):
+    """Generates a mindful awareness message based on user behavior."""
+    # Rules: max 2 sentences, use “we”, end with a choice, reference actual numbers.
+    # Be more direct if visits >= 10 and gentle if < 5.
+    
+    choice = "Do we want to continue scrolling or take a short break for a reset?"
+    
+    if visits_2h >= 10:
+        # Direct tone
+        message = f"We have opened {site} {visits_2h} times in the last 2 hours, with {boredom_total} boredom visits today. Since our last session was {last_session_mins} minutes, {choice.lower()}"
+    elif visits_2h < 5:
+        # Gentle tone
+        message = f"We've visited {site} {visits_2h} times today for '{reason}' and spent {last_session_mins} minutes in our last session. With {boredom_total} boredom visits so far, would we like to proceed or pause for a moment?"
+    else:
+        # Neutral tone (5-9 visits)
+        message = f"We've opened {site} {visits_2h} times in the last 2 hours. After {boredom_total} boredom visits today, {choice.lower()}"
+    
+    return message
+
+def evaluate_intent(site, reason, visits_2h):
+    """
+    Decides the action based on the AI Intent Check rules.
+    Rules:
+    1. If reason in [study,work,relaxation] AND visits_2h < 8 -> allow
+    2. If reason in [boredom,habit,escape] AND visits_2h >= 5 -> friction  
+    3. If reason in [boredom,habit,escape] AND visits_2h in [2,3,4] -> nudge
+    4. Else -> allow
+    """
+    reason_clean = reason.lower().split('/')[0].strip() # Handle "Study/tutorial" etc
+    
+    productive = ["study", "work", "relaxation", "tutorial"]
+    doomscrolling = ["boredom", "habit", "escape"]
+    
+    # Rule 1
+    if any(p in reason_clean for p in productive) and visits_2h < 8:
+        return "allow"
+    
+    # Rule 2
+    if any(d in reason_clean for d in doomscrolling) and visits_2h >= 5:
+        return "friction"
+    
+    # Rule 3
+    if any(d in reason_clean for d in doomscrolling) and 2 <= visits_2h <= 4:
+        return "nudge"
+    
+    # Rule 4
+    return "allow"
+
 @app.post("/log-intent")
 async def log_intent_endpoint(request: IntentRequest):
     """
-    Log the user's reason for opening an addictive site.
+    Log the user's reason for opening an addictive site and evaluate friction.
     """
+    # 1. Log the intent
     database.log_intent(request.site, request.reason, request.timestamp)
-    return {"success": True, "message": "Intent logged successfully"}
+    
+    # 2. Get detailed stats for evaluation
+    stats = database.get_detailed_stats(request.site)
+    visits_2h = stats["visits_2h"]
+    boredom_total = stats["boredom_total"]
+    last_session_mins = stats["last_session_mins"]
+    
+    # 3. Evaluate the intent
+    action = evaluate_intent(request.site, request.reason, visits_2h)
+    
+    # 4. Generate message if needed
+    message = ""
+    if action == "friction":
+        message = generate_awareness_message(request.site, request.reason, visits_2h, boredom_total, last_session_mins)
+    elif action == "nudge":
+        message = f"We've opened {request.site} {visits_2h} times recently—just a quick check-in before we proceed."
+    
+    # 5. Handle instant unlock for "allow"
+    if action == "allow":
+        await unlock()
+    
+    return {
+        "success": True, 
+        "action": action,
+        "message": message
+    }
 
 @app.get("/stats")
 async def get_stats_endpoint(site: str):

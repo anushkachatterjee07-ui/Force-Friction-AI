@@ -2,7 +2,6 @@
 // Polls the local FastAPI backend every 2 seconds.
 // LOCKED  → heavyForceBlock() keeps the barrier active
 // UNLOCKED → barrier is removed so the user can browse
-// Fetch error → default to LOCKED (fail-safe, un-bypassable)
 
 (function () {
     'use strict';
@@ -10,54 +9,82 @@
     const BARRIER_ID  = 'ff-barrier';
     const STYLE_ID    = 'ff-barrier-style';
     const API_STATUS  = 'http://127.0.0.1:8000/api/status';
+    const API_INTENT  = 'http://127.0.0.1:8000/log-intent';
+    const API_UNLOCK  = 'http://127.0.0.1:8000/api/unlock';
     const POLL_MS     = 2000;
+
+    let isProcessing = false;
 
     /* ─────────────────────────────────────────────
        heavyForceBlock()
-       Injects a solid dark-gray full-screen curtain
-       that cannot be scrolled past or clicked through.
+       Injects the mindful barrier with intent check.
     ───────────────────────────────────────────── */
-    function heavyForceBlock() {
+    function heavyForceBlock(message = null, showButtons = true) {
         injectStyle();
 
-        // Re-attach if removed by the page's own JS
-        if (!document.getElementById(BARRIER_ID)) {
-            const barrier = document.createElement('div');
+        let barrier = document.getElementById(BARRIER_ID);
+        if (!barrier) {
+            barrier = document.createElement('div');
             barrier.id = BARRIER_ID;
-
-            const card = document.createElement('div');
-            card.className = 'ff-card';
-
-            const icon = document.createElement('div');
-            icon.className = 'ff-icon';
-            icon.textContent = '🔒';
-
-            const title = document.createElement('div');
-            title.className = 'ff-title';
-            title.textContent = 'Focus-Friction Active.';
-
-            const sub = document.createElement('div');
-            sub.className = 'ff-sub';
-            sub.textContent = 'This site is locked. Stay focused.';
-
-            const dot = document.createElement('div');
-            dot.className = 'ff-dot-wrap';
-
-            for (let i = 0; i < 3; i++) {
-                const d = document.createElement('span');
-                d.className = 'ff-dot';
-                dot.appendChild(d);
-            }
-
-            card.appendChild(icon);
-            card.appendChild(title);
-            card.appendChild(sub);
-            card.appendChild(dot);
-            barrier.appendChild(card);
-
-            // Use documentElement so it works even before <body> exists
             (document.body || document.documentElement).appendChild(barrier);
         }
+
+        const siteName = window.location.hostname.replace('www.', '').split('.')[0];
+        const capitalizedSite = siteName.charAt(0).toUpperCase() + siteName.slice(1);
+
+        // Clear existing content to redraw
+        barrier.innerHTML = '';
+
+        const card = document.createElement('div');
+        card.className = 'ff-card';
+
+        const icon = document.createElement('div');
+        icon.className = 'ff-icon';
+        icon.textContent = message ? '🧠' : '🔒';
+
+        const title = document.createElement('div');
+        title.className = 'ff-title';
+        title.textContent = message ? 'Mindful Check-in' : `Why are you opening ${capitalizedSite}?`;
+
+        const sub = document.createElement('div');
+        sub.className = 'ff-sub';
+        sub.textContent = message || 'Select your intent to continue.';
+
+        card.appendChild(icon);
+        card.appendChild(title);
+        card.appendChild(sub);
+
+        if (showButtons) {
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'ff-btn-container';
+
+            const intents = [
+                { label: 'Study/Tutorial', value: 'study' },
+                { label: 'Work', value: 'work' },
+                { label: 'Relaxation', value: 'relaxation' },
+                { label: 'Habit / Boredom', value: 'boredom' },
+                { label: 'Emotional escape', value: 'escape' }
+            ];
+
+            intents.forEach(intent => {
+                const btn = document.createElement('button');
+                btn.className = 'ff-btn';
+                btn.textContent = intent.label;
+                btn.onclick = () => submitIntent(intent.label);
+                btnContainer.appendChild(btn);
+            });
+
+            card.appendChild(btnContainer);
+        } else if (message) {
+            // Show a "Continue" button for friction/nudge
+            const continueBtn = document.createElement('button');
+            continueBtn.className = 'ff-btn ff-btn-primary';
+            continueBtn.textContent = 'Continue to Site';
+            continueBtn.onclick = () => finalUnlock();
+            card.appendChild(continueBtn);
+        }
+
+        barrier.appendChild(card);
 
         // Lock scrolling
         const root = document.documentElement;
@@ -65,10 +92,46 @@
         if (document.body) document.body.style.setProperty('overflow', 'hidden', 'important');
     }
 
-    /* ─────────────────────────────────────────────
-       removeBarrier()
-       Completely removes the overlay and restores scroll.
-    ───────────────────────────────────────────── */
+    async function submitIntent(reason) {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        try {
+            const site = window.location.hostname;
+            const response = await fetch(API_INTENT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    site: site,
+                    reason: reason,
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.action === 'allow') {
+                removeBarrier();
+            } else {
+                // Show friction or nudge message
+                heavyForceBlock(data.message, false);
+            }
+        } catch (err) {
+            console.error('Focus Friction: Error submitting intent', err);
+        } finally {
+            isProcessing = false;
+        }
+    }
+
+    async function finalUnlock() {
+        try {
+            await fetch(API_UNLOCK, { method: 'POST' });
+            removeBarrier();
+        } catch (err) {
+            console.error('Focus Friction: Error unlocking', err);
+        }
+    }
+
     function removeBarrier() {
         const barrier = document.getElementById(BARRIER_ID);
         if (barrier) barrier.remove();
@@ -81,10 +144,6 @@
         if (document.body) document.body.style.overflow = '';
     }
 
-    /* ─────────────────────────────────────────────
-       injectStyle()
-       Injects CSS once — safe to call repeatedly.
-    ───────────────────────────────────────────── */
     function injectStyle() {
         if (document.getElementById(STYLE_ID)) return;
 
@@ -96,7 +155,7 @@
                 inset: 0 !important;
                 width: 100vw !important;
                 height: 100vh !important;
-                background: #1a1a1f !important;
+                background: #121214 !important;
                 z-index: 2147483647 !important;
                 pointer-events: all !important;
                 display: flex !important;
@@ -105,105 +164,91 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 box-sizing: border-box !important;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                font-family: 'Inter', -apple-system, sans-serif !important;
             }
             #${BARRIER_ID} .ff-card {
-                background: #25252d !important;
-                border: 1px solid rgba(255,255,255,0.08) !important;
-                border-radius: 20px !important;
-                padding: 3rem 4rem !important;
+                background: #1c1c21 !important;
+                border: 1px solid rgba(255,255,255,0.1) !important;
+                border-radius: 24px !important;
+                padding: 3rem !important;
                 text-align: center !important;
-                max-width: 480px !important;
+                max-width: 500px !important;
                 width: 90% !important;
-                box-shadow: 0 32px 80px rgba(0,0,0,0.6) !important;
-                user-select: none !important;
+                box-shadow: 0 40px 100px rgba(0,0,0,0.8) !important;
             }
             #${BARRIER_ID} .ff-icon {
-                font-size: 3rem !important;
-                margin-bottom: 1rem !important;
-                display: block !important;
+                font-size: 3.5rem !important;
+                margin-bottom: 1.5rem !important;
             }
             #${BARRIER_ID} .ff-title {
-                display: block !important;
                 font-size: 1.8rem !important;
-                font-weight: 700 !important;
-                color: #f1f1f1 !important;
-                margin: 0 0 0.5rem !important;
-                letter-spacing: -0.02em !important;
+                font-weight: 800 !important;
+                color: #fff !important;
+                margin-bottom: 0.8rem !important;
+                letter-spacing: -0.03em !important;
             }
             #${BARRIER_ID} .ff-sub {
-                display: block !important;
-                font-size: 0.95rem !important;
-                color: #888 !important;
-                margin: 0 0 1.6rem !important;
+                font-size: 1.05rem !important;
+                line-height: 1.6 !important;
+                color: #a0a0ab !important;
+                margin-bottom: 2.5rem !important;
             }
-            #${BARRIER_ID} .ff-dot-wrap {
+            #${BARRIER_ID} .ff-btn-container {
                 display: flex !important;
-                justify-content: center !important;
-                gap: 8px !important;
+                flex-direction: column !important;
+                gap: 12px !important;
             }
-            #${BARRIER_ID} .ff-dot {
-                display: inline-block !important;
-                width: 8px !important;
-                height: 8px !important;
-                border-radius: 50% !important;
-                background: #444 !important;
-                animation: ff-pulse 1.4s ease-in-out infinite !important;
+            #${BARRIER_ID} .ff-btn {
+                background: #2a2a32 !important;
+                border: 1px solid rgba(255,255,255,0.05) !important;
+                color: #efeff1 !important;
+                padding: 14px !important;
+                border-radius: 12px !important;
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+                text-align: center !important;
             }
-            #${BARRIER_ID} .ff-dot:nth-child(2) { animation-delay: 0.2s !important; }
-            #${BARRIER_ID} .ff-dot:nth-child(3) { animation-delay: 0.4s !important; }
-            @keyframes ff-pulse {
-                0%, 80%, 100% { background: #444 !important; transform: scale(1) !important; }
-                40%            { background: #6366f1 !important; transform: scale(1.4) !important; }
+            #${BARRIER_ID} .ff-btn:hover {
+                background: #3a3a45 !important;
+                transform: translateY(-2px) !important;
+                border-color: rgba(255,255,255,0.2) !important;
+            }
+            #${BARRIER_ID} .ff-btn-primary {
+                background: #6366f1 !important;
+                color: white !important;
+                margin-top: 10px !important;
+            }
+            #${BARRIER_ID} .ff-btn-primary:hover {
+                background: #4f46e5 !important;
             }
         `;
 
         (document.head || document.documentElement).appendChild(s);
     }
 
-    /* ─────────────────────────────────────────────
-       pollStatus()
-       Hits /api/status and applies LOCKED / UNLOCKED logic.
-       On any network failure → stays LOCKED (fail-safe).
-    ───────────────────────────────────────────── */
     async function pollStatus() {
+        if (isProcessing) return;
         try {
-            const response = await fetch(API_STATUS, {
-                method: 'GET',
-                cache: 'no-store',
-                headers: { 'Accept': 'application/json' }
-            });
-
-            if (!response.ok) {
-                // Non-2xx from our own server → treat as LOCKED
-                console.warn(`Focus Friction: /api/status returned ${response.status}. Defaulting to LOCKED.`);
-                heavyForceBlock();
-                return;
-            }
-
+            const response = await fetch(API_STATUS);
             const data = await response.json();
 
             if (data.status === 'UNLOCKED') {
                 removeBarrier();
             } else {
-                // "LOCKED" or any unexpected value → block
-                heavyForceBlock();
+                // Only show initial barrier if not already showing a message
+                const barrier = document.getElementById(BARRIER_ID);
+                if (!barrier || barrier.innerHTML === '') {
+                    heavyForceBlock();
+                }
             }
-
         } catch (err) {
-            // Network error / server down → fail-safe: keep LOCKED
-            console.warn('Focus Friction: Could not reach backend. Defaulting to LOCKED.', err.message);
             heavyForceBlock();
         }
     }
 
-    /* ─────────────────────────────────────────────
-       Bootstrap
-       • Immediately block on first run
-       • Then poll every 2 s
-    ───────────────────────────────────────────── */
-    heavyForceBlock();          // instant block before first poll completes
-    pollStatus();               // first async check right away
-    setInterval(pollStatus, POLL_MS);   // continuous 2-second loop
+    heavyForceBlock();
+    setInterval(pollStatus, POLL_MS);
 
 })();
