@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Focus Friction",
+  "version": "1.3",
+  "description": "Blocks YouTube and Instagram with a full-screen focus overlay.",
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.instagram.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*",
+        "*://*.instagram.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end",
+      "world": "ISOLATED"
+    }
+  ]
+}
