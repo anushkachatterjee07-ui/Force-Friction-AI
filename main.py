@@ -93,52 +93,48 @@ class IntentRequest(BaseModel):
     reason: str
     timestamp: str
 
-def generate_awareness_message(site, reason, visits_2h, boredom_total, last_session_mins):
-    """Generates a mindful awareness message based on user behavior."""
-    # Rules: max 2 sentences, use “we”, end with a choice, reference actual numbers.
-    # Be more direct if visits >= 10 and gentle if < 5.
+def generate_awareness_message(site, reason, visits_2h, visits_today, action):
+    """Generates a brief, non-judgmental response based on the action and intent."""
+    reason_clean = reason.lower().split('/')[0].strip()
+    productive = ["study", "work", "relaxation", "tutorial"]
+    is_productive = any(p in reason_clean for p in productive)
+
+    if action == "friction":
+        if is_productive:
+            return f"{visits_2h}+ {reason_clean} sessions open. Break or continue?"
+        return f"We've opened {site} {visits_2h}x in 2h. 5-min reset or proceed?"
     
-    choice = "Do we want to continue scrolling or take a short break for a reset?"
+    if action == "nudge":
+        if is_productive:
+            return f"{reason_clean.capitalize()} session #{visits_2h}. You got this."
+        return f"Visit #{visits_today} to {site}. Stay intentional."
     
-    if visits_2h >= 10:
-        # Direct tone
-        message = f"We have opened {site} {visits_2h} times in the last 2 hours, with {boredom_total} boredom visits today. Since our last session was {last_session_mins} minutes, {choice.lower()}"
-    elif visits_2h < 5:
-        # Gentle tone
-        message = f"We've visited {site} {visits_2h} times today for '{reason}' and spent {last_session_mins} minutes in our last session. With {boredom_total} boredom visits so far, would we like to proceed or pause for a moment?"
-    else:
-        # Neutral tone (5-9 visits)
-        message = f"We've opened {site} {visits_2h} times in the last 2 hours. After {boredom_total} boredom visits today, {choice.lower()}"
-    
-    return message
+    return ""
 
 def evaluate_intent(site, reason, visits_2h):
     """
     Decides the action based on the AI Intent Check rules.
-    Rules:
-    1. If reason in [study,work,relaxation] AND visits_2h < 8 -> allow
-    2. If reason in [boredom,habit,escape] AND visits_2h >= 5 -> friction  
-    3. If reason in [boredom,habit,escape] AND visits_2h in [2,3,4] -> nudge
-    4. Else -> allow
+    Refined for productive validation:
+    - Productive: <3 (allow), 3-7 (nudge/reinforce), >=8 (friction)
+    - Doomscrolling: >=5 (friction), 2-4 (nudge)
     """
-    reason_clean = reason.lower().split('/')[0].strip() # Handle "Study/tutorial" etc
-    
+    reason_clean = reason.lower().split('/')[0].strip()
     productive = ["study", "work", "relaxation", "tutorial"]
     doomscrolling = ["boredom", "habit", "escape"]
     
-    # Rule 1
-    if any(p in reason_clean for p in productive) and visits_2h < 8:
+    is_productive = any(p in reason_clean for p in productive)
+    is_doomscrolling = any(d in reason_clean for d in doomscrolling)
+
+    if is_productive:
+        if visits_2h >= 8: return "friction"
+        if visits_2h >= 3: return "nudge"
         return "allow"
     
-    # Rule 2
-    if any(d in reason_clean for d in doomscrolling) and visits_2h >= 5:
-        return "friction"
+    if is_doomscrolling:
+        if visits_2h >= 5: return "friction"
+        if 2 <= visits_2h <= 4: return "nudge"
+        return "friction" if visits_2h > 4 else "allow" # Safety fallback
     
-    # Rule 3
-    if any(d in reason_clean for d in doomscrolling) and 2 <= visits_2h <= 4:
-        return "nudge"
-    
-    # Rule 4
     return "allow"
 
 @app.post("/log-intent")
@@ -159,11 +155,8 @@ async def log_intent_endpoint(request: IntentRequest):
     action = evaluate_intent(request.site, request.reason, visits_2h)
     
     # 4. Generate message if needed
-    message = ""
-    if action == "friction":
-        message = generate_awareness_message(request.site, request.reason, visits_2h, boredom_total, last_session_mins)
-    elif action == "nudge":
-        message = f"We've opened {request.site} {visits_2h} times recently—just a quick check-in before we proceed."
+    visits_today = stats["visits_today"]
+    message = generate_awareness_message(request.site, request.reason, visits_2h, visits_today, action)
     
     # 5. Handle instant unlock for "allow"
     if action == "allow":
