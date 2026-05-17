@@ -93,6 +93,27 @@ class IntentRequest(BaseModel):
     reason: str
     timestamp: str
 
+class SessionEndRequest(BaseModel):
+    site: str
+    reason: str
+    duration_mins: int
+    intent: str
+
+def reflect_on_session(site: str, reason: str, duration_mins: int, intent: str) -> str:
+    """
+    Reflect on session time and return a 1-sentence non-judgmental message.
+    """
+    if duration_mins < 5:
+        return ""
+        
+    if intent == "productive" and duration_mins >= 25:
+        return f"{duration_mins}min of {reason}. Solid focus."
+        
+    if intent == "mindless" and duration_mins >= 15:
+        return f"That was {duration_mins}min on {site}. Reset next time?"
+        
+    return ""
+
 def generate_awareness_message(site, reason, visits_2h, visits_today, action):
     """Generates a brief, non-judgmental response based on the action and intent."""
     reason_clean = reason.lower().split('/')[0].strip()
@@ -174,3 +195,20 @@ async def get_stats_endpoint(site: str):
     Get the visit count for a specific site today.
     """
     return database.get_stats(site)
+
+@app.post("/api/session-end")
+async def session_end_endpoint(request: SessionEndRequest):
+    """
+    Evaluate the session and optionally return a reflection message.
+    """
+    message = reflect_on_session(
+        site=request.site,
+        reason=request.reason,
+        duration_mins=request.duration_mins,
+        intent=request.intent
+    )
+    
+    return {
+        "success": True,
+        "message": message
+    }
