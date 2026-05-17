@@ -4,26 +4,22 @@ Force-Friction AI is a behavior-aware focus tool designed to break the cycle of 
 
 ## 🚀 Core Features (The USP)
 
-- **AI Intent Check**: Before opening addictive platforms (YouTube, Instagram, TikTok), the system asks for your intent (e.g., Work, Study, Boredom).
-- **Behavior-Aware Responses**: 
-  - **Productive Intent Validation**: Supporting deep work with tiered feedback.
-    - *Silent Allow*: Instant access for the first few sessions.
-    - *Positive Reinforcement*: Encouraging nudges for ongoing sessions.
-    - *Mindful Escalation*: Friction if too many sessions are opened, suggesting a potential break.
-  - **Doomscrolling Detection**: 
-    - *Behavioral Nudge*: Subtle reminders for early-stage habit loops.
-    - *Mindful Friction*: Data-backed awareness pauses for high-frequency visits.
-- **Non-Judgmental Feedback**: Uses "we" phrasing and ends with a choice, empowering you to make a conscious decision rather than following a command.
-- **Session Reflection & Mood Correlation**: Evaluates your session time after the unlock period expires and optionally asks a check-in question (e.g., *"How do you feel after 5min on youtube.com?"*) to correlate site usage with mood.
-- **Deep Analytics Dashboard**: Tracks visit counts, boredom-driven triggers, and session durations, visualizing your digital habits with charts and personalized insights.
+- **AI Intent Check & 5-Minute Unlock**: Before opening addictive platforms (YouTube, Instagram, TikTok), the system asks for your intent (e.g., Work, Study, Boredom) and introduces a 5-second mindful friction lock before initiating a 5-minute unlock window.
+- **Behavior-Aware Responses & Dynamic Tone**: 
+  - **Dynamic Tone Adjustment**: The system adjusts its non-judgmental feedback tone based on your visit frequency—using a gentle nudge for low frequency (<5) and a direct intervention for high frequency (≥10).
+  - **Productive Intent Validation**: Supports deep work with tiered feedback (Silent Allow, Positive Reinforcement, Mindful Escalation).
+  - **Mindful Browsing Pause**: A data-backed awareness pause encouraging a reset after mindless browsing loops.
+- **Session Reflection (Mindful Silence)**: Evaluates your session time after the unlock period expires. It remains silently out of your way for short, intentional sessions (<5 minutes), but generates brief, actionable reflection messages for longer, potentially distracting sessions.
+- **Deep Analytics Dashboard (Bento Grid 2.0)**: Tracks visit counts, boredom-driven triggers, and session durations, visualizing your digital habits with charts and personalized insights within a sleek Bento Grid layout.
+- **Cyber-Ink Aesthetic**: A cohesive, premium dark-mode design language applied across the web dashboard and browser extension overlay, featuring smooth micro-animations and a functional progress bar.
 
 ## 🛠️ Tech Stack
 
 - **Backend**: FastAPI (Python)
 - **Database**: SQLite3
 - **Frontend**: Chrome Extension (Manifest V3)
-- **Analytics Dashboard**: Pure HTML/CSS/JS with Chart.js
-- **Styling**: Vanilla CSS with a premium dark-mode aesthetic
+- **Analytics Dashboard**: Pure HTML/CSS/JS with Chart.js in a Bento Grid 2.0 layout
+- **Styling**: Vanilla CSS utilizing a premium "Cyber-Ink" dark-mode aesthetic with smooth micro-animations
 
 ## 🏗️ System Architecture
 
@@ -45,7 +41,9 @@ Force-Friction-AI/
 ├── database.py          # Database operations and schema logic
 ├── main.py              # FastAPI backend server and intent evaluation
 ├── manifest.json        # Chrome Extension configuration (Manifest V3)
-└── README.md            # Project documentation
+├── README.md            # Project documentation
+├── run.ps1              # PowerShell script to orchestrate backend and vision engine
+└── vision_engine.py     # Local OpenCV script for face-lock verification
 ```
 
 ## 📥 Installation & Setup
