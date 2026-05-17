@@ -114,6 +114,17 @@ def reflect_on_session(site: str, reason: str, duration_mins: int, intent: str) 
         
     return ""
 
+def correlate_usage_with_mood(site: str, reason: str, duration_mins: int) -> str:
+    """
+    Correlate usage with mood and return an optional check-in question.
+    """
+    reason_clean = reason.lower().split('/')[0].strip()
+    if reason_clean == "boredom" and duration_mins >= 10:
+        return f"How do you feel after {duration_mins}min on {site}? Better | Same | Worse"
+    if reason_clean == "study" and duration_mins >= 25:
+        return f"Rate focus after {duration_mins}min of {reason_clean}: 1-5"
+    return ""
+
 def generate_awareness_message(site, reason, visits_2h, visits_today, action):
     """Generates a brief, non-judgmental response based on the action and intent."""
     reason_clean = reason.lower().split('/')[0].strip()
@@ -199,7 +210,7 @@ async def get_stats_endpoint(site: str):
 @app.post("/api/session-end")
 async def session_end_endpoint(request: SessionEndRequest):
     """
-    Evaluate the session and optionally return a reflection message.
+    Evaluate the session and optionally return a reflection message and a mood question.
     """
     message = reflect_on_session(
         site=request.site,
@@ -208,7 +219,14 @@ async def session_end_endpoint(request: SessionEndRequest):
         intent=request.intent
     )
     
+    question = correlate_usage_with_mood(
+        site=request.site,
+        reason=request.reason,
+        duration_mins=request.duration_mins
+    )
+    
     return {
         "success": True,
-        "message": message
+        "message": message,
+        "question": question
     }
