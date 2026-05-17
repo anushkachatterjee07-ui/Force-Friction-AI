@@ -149,16 +149,25 @@ function startFrictionTimer() {
             </div>
             <h1 style="font-size:28px; margin:0 0 12px 0; color:#EF4444; font-weight:700; letter-spacing:-0.5px;">Loop Detected</h1>
             <p style="font-size:16px; color:#94A3BB; margin:0 0 24px 0; line-height:1.6;">You've been here often recently.<br>Take a mindful pause.</p>
-            <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); padding:16px 32px; border-radius:16px; width:100%; box-sizing:border-box;">
-                <div id="friction-timer" style="font-size:24px; color:#10B981; font-weight:700; font-variant-numeric:tabular-nums;">Unlocking in 5s...</div>
+            <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); padding:20px; border-radius:16px; width:100%; box-sizing:border-box;">
+                <div id="friction-timer" style="font-size:20px; color:#10B981; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:12px;">Unlocking in 5s...</div>
+                <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,0.3);">
+                    <div id="friction-progress" style="width:100%; height:100%; background:linear-gradient(90deg, #10B981, #34d399); border-radius:4px; transition:width 5s linear; box-shadow:0 0 10px rgba(16,185,129,0.5);"></div>
+                </div>
             </div>
         </div>
     `;
     
+    setTimeout(() => {
+        const prog = document.getElementById("friction-progress");
+        if(prog) prog.style.width = "0%";
+    }, 50);
+
     let seconds = 5;
     const timer = setInterval(() => {
         seconds--;
-        document.getElementById("friction-timer").innerText = `Unlocking in ${seconds}s...`;
+        const timerEl = document.getElementById("friction-timer");
+        if(timerEl) timerEl.innerText = `Unlocking in ${seconds}s...`;
         if (seconds <= 0) {
             clearInterval(timer);
             fetch("http://127.0.0.1:8000/api/unlock", {method:"POST"})
