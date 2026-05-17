@@ -14,7 +14,7 @@ Force-Friction AI is a behavior-aware focus tool designed to break the cycle of 
     - *Behavioral Nudge*: Subtle reminders for early-stage habit loops.
     - *Mindful Friction*: Data-backed awareness pauses for high-frequency visits.
 - **Non-Judgmental Feedback**: Uses "we" phrasing and ends with a choice, empowering you to make a conscious decision rather than following a command.
-- **Session Reflection & Mood Correlation**: Evaluates your session time after the unlock period expires and optionally asks a check-in question (e.g., *"How do you feel after 15min on youtube.com?"*) to correlate site usage with mood.
+- **Session Reflection & Mood Correlation**: Evaluates your session time after the unlock period expires and optionally asks a check-in question (e.g., *"How do you feel after 5min on youtube.com?"*) to correlate site usage with mood.
 - **Deep Analytics Dashboard**: Tracks visit counts, boredom-driven triggers, and session durations, visualizing your digital habits with charts and personalized insights.
 
 ## 🛠️ Tech Stack
@@ -29,7 +29,7 @@ Force-Friction AI is a behavior-aware focus tool designed to break the cycle of 
 
 Force-Friction AI operates as a client-server model locally on your machine:
 1. **Chrome Extension (Frontend)**: Intercepts access to addictive sites (`content.js`), handles Single Page Application (SPA) navigations (`background.js`), and presents the mindful friction UI. It constantly polls the backend to verify the lock/unlock status.
-2. **FastAPI Server (Backend)**: Evaluates user intent based on recent usage patterns (`main.py`), manages a global 15-minute unlock timer, and generates personalized, non-judgmental responses.
+2. **FastAPI Server (Backend)**: Evaluates user intent based on recent usage patterns (`main.py`), manages a global 5-minute unlock timer, and generates personalized, non-judgmental responses.
 3. **SQLite Database**: Persistently logs user intents, session durations, and blocked attempts (`database.py`) to build usage history.
 4. **Analytics Dashboard**: A local HTML interface (`dashboard.html`) that retrieves data from the backend to visualize digital habits, mood correlations, and focus statistics.
 
@@ -67,7 +67,7 @@ Force-Friction-AI/
 3. Click **Load unpacked** and select the `Force-Friction-AI` project folder.
 
 ### 3. Analytics Dashboard
-Simply open `dashboard.html` in your web browser to view your mood correlations, 7-day mood scores, and top addictive sites!
+Navigate to `http://127.0.0.1:8000/dashboard` in your web browser to view your mood correlations, 7-day mood scores, and top addictive sites, served directly from the backend!
 
 ## 📜 Usage Flow
 
