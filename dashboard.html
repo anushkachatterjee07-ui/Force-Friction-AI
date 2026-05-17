@@ -7,9 +7,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg: #111;
+            --bg: #0B0C10; /* Cyber Ink */
+            --card-bg: #1F2833; /* Deep Obsidian */
+            --primary: #8A2BE2; /* Electric Violet */
+            --success: #10B981; /* Emerald Glow */
+            --warning: #DC143C; /* Crimson Pulse */
+            --text-muted: #64748B; /* Slate Gray */
             --text: #fff;
-            --border: #333;
+            --border: #334155;
             --radius: 16px;
         }
         body {
@@ -27,7 +32,7 @@
             gap: 24px;
         }
         .card {
-            background: #1a1a1a;
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 24px;
@@ -57,7 +62,7 @@
         h2 {
             margin-top: 0;
             font-size: 1.1rem;
-            color: #ccc;
+            color: var(--text-muted);
             font-weight: 600;
             margin-bottom: 16px;
         }
@@ -71,7 +76,7 @@
             border-bottom: 1px solid var(--border);
         }
         th {
-            color: #888;
+            color: var(--text-muted);
             font-weight: 500;
             font-size: 0.9rem;
         }
@@ -115,8 +120,8 @@
     </div>
 
     <script>
-        Chart.defaults.color = '#888';
-        Chart.defaults.borderColor = '#333';
+        Chart.defaults.color = '#64748B'; // Slate Gray
+        Chart.defaults.borderColor = '#334155';
 
         async function loadData() {
             try {
@@ -135,8 +140,8 @@
                     data: {
                         labels: ['Better', 'Same', 'Worse'],
                         datasets: [
-                            { label: 'Boredom', data: [b.Better, b.Same, b.Worse], backgroundColor: '#ff6b6b' },
-                            { label: 'Study', data: [s.Better, s.Same, s.Worse], backgroundColor: '#4ecdc4' }
+                            { label: 'Boredom', data: [b.Better, b.Same, b.Worse], backgroundColor: '#DC143C' }, // Crimson Pulse
+                            { label: 'Study', data: [s.Better, s.Same, s.Worse], backgroundColor: '#10B981' } // Emerald Glow
                         ]
                     },
                     options: { responsive: true, maintainAspectRatio: false }
@@ -150,8 +155,8 @@
                         datasets: [{
                             label: 'Score (-1 to 1)',
                             data: dMood.map(d => d.score),
-                            borderColor: '#feca57',
-                            backgroundColor: 'rgba(254, 202, 87, 0.1)',
+                            borderColor: '#8A2BE2', // Electric Violet
+                            backgroundColor: 'rgba(138, 43, 226, 0.1)',
                             fill: true,
                             tension: 0.4
                         }]
