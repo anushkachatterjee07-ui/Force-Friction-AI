@@ -25,6 +25,29 @@ Force-Friction AI is a behavior-aware focus tool designed to break the cycle of 
 - **Analytics Dashboard**: Pure HTML/CSS/JS with Chart.js
 - **Styling**: Vanilla CSS with a premium dark-mode aesthetic
 
+## 🏗️ System Architecture
+
+Force-Friction AI operates as a client-server model locally on your machine:
+1. **Chrome Extension (Frontend)**: Intercepts access to addictive sites (`content.js`), handles Single Page Application (SPA) navigations (`background.js`), and presents the mindful friction UI. It constantly polls the backend to verify the lock/unlock status.
+2. **FastAPI Server (Backend)**: Evaluates user intent based on recent usage patterns (`main.py`), manages a global 15-minute unlock timer, and generates personalized, non-judgmental responses.
+3. **SQLite Database**: Persistently logs user intents, session durations, and blocked attempts (`database.py`) to build usage history.
+4. **Analytics Dashboard**: A local HTML interface (`dashboard.html`) that retrieves data from the backend to visualize digital habits, mood correlations, and focus statistics.
+
+## 📂 Folder Architecture
+
+```text
+Force-Friction-AI/
+├── .venv/               # Python virtual environment
+├── analytics.db         # SQLite database storing usage logs and stats
+├── background.js        # Chrome Extension background worker (SPA routing)
+├── content.js           # Chrome Extension script (Injects UI, polls backend)
+├── dashboard.html       # Analytics dashboard interface
+├── database.py          # Database operations and schema logic
+├── main.py              # FastAPI backend server and intent evaluation
+├── manifest.json        # Chrome Extension configuration (Manifest V3)
+└── README.md            # Project documentation
+```
+
 ## 📥 Installation & Setup
 
 ### 1. Backend Setup
