@@ -85,3 +85,78 @@ Navigate to `http://127.0.0.1:8000/dashboard` in your web browser to view your m
 
 ---
 *Built to turn mindless scrolling into mindful living.*
+
+## Hackathon Judges Supplement: Technical Deep Dive
+
+### 1. Technical Architecture
+
+```text
+[ Chrome Extension ] (Client Layer)
+   │
+   ├─ Content Scripts (DOM Interception & Block UI)
+   ├─ Background Service Worker (API Communication & Sync)
+   │
+   ▼  HTTP/REST (JSON)
+[ FastAPI Backend ] (Application Layer)
+   │
+   ├─ API Router (/api/status, /api/team/stats)
+   │
+   ├──▶ [ OpenCV Engine ] (Computer Vision)
+   │       └─ Asynchronous Face-Lock Detection & Verification
+   │
+   └──▶ [ SQLite Database ] (Persistence Layer)
+           └─ Focus State, Session Logs & "Binary Souls" Team Sync
+```
+
+### 2. System Lifecycle
+
+1. **DOM Interception**: The Chrome Extension monitors navigation events. When a user navigates to a distracting domain (e.g., YouTube or Instagram), the extension intercepts the DOM immediately before the page can fully render.
+2. **Core Blocker Injection**: The content script injects the `heavyForceBlock` component—an un-closable, full-screen overlay with a heavy blur effect and a "Focus-Friction Active" warning, completely restricting interaction with the underlying content.
+3. **Async Computer Vision Face-Lock Verification**: The extension asynchronously pings the FastAPI backend. The backend triggers the OpenCV engine, which runs a non-blocking facial recognition and posture analysis check to verify if the user is actively at their desk and focused (Face-Lock).
+4. **State Mutation**: Based on the OpenCV results, the FastAPI backend mutates the local user's focus state (e.g., locked in vs. distracted) and persists this updated state into the SQLite database.
+5. **Social Duo Mode Sync**: The system triggers a real-time sync with the database, updating the injected "Binary Souls" accountability UI block with the latest team status. The UI dynamically shifts to show either "🟢 FOCUSED" or "⚠️ IN A LOOP" to enforce social accountability.
+
+### 3. Setup & Deployment Guide
+
+#### Backend Setup (FastAPI & OpenCV)
+```bash
+# 1. Create a Python virtual environment
+python -m venv venv
+
+# 2. Activate the virtual environment
+.\venv\Scripts\activate  # Windows
+# source venv/bin/activate  # macOS/Linux
+
+# 3. Install core dependencies
+pip install fastapi uvicorn opencv-python
+
+# 4. Boot the FastAPI backend server
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+#### Chrome Extension Setup (Manual Unpacked)
+1. Open Google Chrome and navigate to `chrome://extensions/`.
+2. Toggle on **Developer mode** in the top-right corner.
+3. Click the **Load unpacked** button in the top-left corner.
+4. Select the project directory containing the `manifest.json` file.
+5. The extension is now loaded and will immediately begin intercepting target domains.
+
+### 4. API Reference
+
+| Endpoint | HTTP Verb | Required Payload (JSON) | Success Response Schema | Description |
+|---|---|---|---|---|
+| `/api/status` | `GET` | *None* | `{"status": "LOCKED" \| "UNLOCKED", "time_remaining": int}` | Fetches the current system lock state and remaining unlock time window. |
+| `/api/team/stats` | `GET` | *None* | `{"partner_status": "FOCUSED"}` | Retrieves the real-time focus status of the paired teammate (Binary Souls). |
+| `/api/team/pair` | `POST` | `{"partner_id": "string"}` | `{"success": true, "team_id": "string"}` | Pairs two users together for social accountability and syncs states. |
+| `/api/lock` | `POST` | *None* | `{"success": true, "message": "System locked immediately"}` | Manually forces an immediate lock state, overriding any active timers. |
+| `/api/unlock` | `POST` | *None* | `{"success": true, "message": "string", "expiry": "ISO8601"}` | Unlocks the system for exactly 2 minutes after a successful Face-Lock. |
+| `/api/log` | `POST` | `{"event_type": "string", "platform": "string"}` | `{"success": true, "message": "Event logged successfully"}` | Persists interactions, blocked attempts, and CV unlock triggers to the SQLite DB. |
+
+### 5. Computer Vision Pipeline
+
+The Focus Friction AI leverages a localized computer vision script (`vision_engine.py`) to verify user presence and intent natively, ensuring privacy and eliminating cloud compute latency. 
+
+1. **Frame Matrix Acquisition**: The engine initializes the primary webcam (`cv2.VideoCapture(0)`). Each incoming frame is captured as a BGR matrix, horizontally flipped to create a natural mirror effect, and instantly down-converted to a grayscale matrix (`cv2.cvtColor`) to heavily reduce processing overhead.
+2. **Haar Cascade Detection**: OpenCV's `haarcascade_frontalface_default.xml` classifier (`detectMultiScale`) is applied against the grayscale matrix frame-by-frame to identify facial structures. 
+3. **Temporal Face-Lock Tracking**: The engine enforces a strict `TARGET_STREAK` (5.0 seconds). When a face is detected, a `streak_active` state is toggled and a timer begins. If the face is lost or obstructed before the timer finishes, the streak is instantly reset to zero (`color = (0, 0, 255)`).
+4. **State Mutation & Async Trigger**: Once a continuous 5-second Face-Lock is achieved, the script executes non-blocking background `requests.post()` calls to `/api/unlock` and `/api/log`. This mutates the backend state allowing browser access, logs the successful verification event, and triggers an immediate "UNLOCKED!" visual overlay confirmation on the local CV diagnostic feed.
