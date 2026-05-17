@@ -5,20 +5,106 @@ function showIntentPrompt() {
     const barrier = document.createElement("div");
     barrier.id = "binary-souls-barrier";
     barrier.innerHTML = `
-        <div style="text-align:center; font-family:Segoe UI; color:white; padding:30px; background:#18181b; border:1px solid #27272a; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.5); max-width:450px;">
-            <h1 style="font-size:28px; margin-bottom:10px; color:#ef4444; font-weight:700;">Why now?</h1>
-            <p style="font-size:16px; color:#a1a1aa; margin-bottom:20px;">Be honest. No judgment.</p>
-            <button data-reason="Study" style="background:#22c55e; color:white; border:none; padding:12px; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:8px;">Study / Work</button>
-            <button data-reason="Boredom" style="background:#ef4444; color:white; border:none; padding:12px; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:8px;">Boredom / Habit</button>
-            <button data-reason="Break" style="background:#3b82f6; color:white; border:none; padding:12px; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:15px;">Intentional Break</button>
-            <div style="display:inline-block; padding:8px 16px; background:#27272a; border-radius:20px; font-size:13px; color:#e4e4e7; font-weight:500;">🛡️ Binary Souls Safety Layer</div>
+        <div style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 16px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: white;
+            padding: 32px;
+            background: rgba(18, 23, 35, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+            max-width: 480px;
+            width: 90%;
+            box-sizing: border-box;
+        ">
+            <!-- Header Bento (spans 2 columns) -->
+            <div style="grid-column: span 2; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 24px; text-align: center;">
+                <h1 style="font-size:30px; margin:0 0 8px 0; color:#fff; font-weight:700; letter-spacing: -0.5px;">Focus Check</h1>
+                <p style="font-size:15px; color:#94A3BB; margin:0;">What brings you here? Be honest.</p>
+            </div>
+
+            <!-- Option 1: Study -->
+            <button data-reason="Study" style="
+                background: linear-gradient(145deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+                border: 1px solid rgba(16, 185, 129, 0.2);
+                color: #10B981;
+                padding: 24px 20px;
+                border-radius: 20px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(16, 185, 129, 0.25)'" onmouseout="this.style.background='linear-gradient(145deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))'">
+                <span style="font-size: 28px; pointer-events:none;">📚</span>
+                <span style="pointer-events:none;">Study / Work</span>
+            </button>
+
+            <!-- Option 2: Break -->
+            <button data-reason="Break" style="
+                background: linear-gradient(145deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+                border: 1px solid rgba(99, 102, 241, 0.2);
+                color: #818cf8;
+                padding: 24px 20px;
+                border-radius: 20px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(99, 102, 241, 0.25)'" onmouseout="this.style.background='linear-gradient(145deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05))'">
+                <span style="font-size: 28px; pointer-events:none;">☕</span>
+                <span style="pointer-events:none;">Intentional Break</span>
+            </button>
+
+            <!-- Option 3: Boredom (Spans 2 columns but shorter) -->
+            <button data-reason="Boredom" style="
+                grid-column: span 2;
+                background: linear-gradient(145deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+                border: 1px solid rgba(239, 68, 68, 0.2);
+                color: #EF4444;
+                padding: 20px;
+                border-radius: 20px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 12px;
+                transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(239, 68, 68, 0.25)'" onmouseout="this.style.background='linear-gradient(145deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))'">
+                <span style="font-size: 24px; pointer-events:none;">🌀</span>
+                <span style="pointer-events:none;">Boredom / Habit</span>
+            </button>
+
+            <!-- Footer -->
+            <div style="grid-column: span 2; display:flex; justify-content:center; margin-top: 4px;">
+                <div style="padding: 8px 16px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; font-size: 12px; color: #94A3BB; font-weight: 500; display:flex; align-items:center; gap: 8px;">
+                    <span style="display:inline-block; width:8px; height:8px; background:#10B981; border-radius:50%; box-shadow:0 0 8px #10B981;"></span>
+                    Focus Friction AI Active
+                </div>
+            </div>
         </div>
     `;
 
     Object.assign(barrier.style, {
         position:"fixed", top:"0", left:"0", width:"100vw", height:"100vh",
-        backgroundColor:"#09090b", zIndex:"2147483647", display:"flex",
-        justifyContent:"center", alignItems:"center"
+        backgroundColor:"rgba(10, 13, 20, 0.85)", zIndex:"2147483647", display:"flex",
+        justifyContent:"center", alignItems:"center",
+        backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)"
     });
 
     document.body.appendChild(barrier);
@@ -57,9 +143,16 @@ function showIntentPrompt() {
 function startFrictionTimer() {
     const content = document.querySelector("#binary-souls-barrier > div");
     content.innerHTML = `
-        <h1 style="font-size:28px; margin-bottom:10px; color:#ef4444; font-weight:700;">Loop Detected</h1>
-        <p style="font-size:16px; color:#a1a1aa; margin-bottom:25px; line-height:1.5;">5+ visits in 2h. Take a pause.</p>
-        <div id="friction-timer" style="font-size:20px; color:#facc15; font-weight:600;">Unlocking in 5s...</div>
+        <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding: 10px;">
+            <div style="width:64px; height:64px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
+                <span style="font-size:32px;">🛑</span>
+            </div>
+            <h1 style="font-size:28px; margin:0 0 12px 0; color:#EF4444; font-weight:700; letter-spacing:-0.5px;">Loop Detected</h1>
+            <p style="font-size:16px; color:#94A3BB; margin:0 0 24px 0; line-height:1.6;">You've been here often recently.<br>Take a mindful pause.</p>
+            <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); padding:16px 32px; border-radius:16px; width:100%; box-sizing:border-box;">
+                <div id="friction-timer" style="font-size:24px; color:#10B981; font-weight:700; font-variant-numeric:tabular-nums;">Unlocking in 5s...</div>
+            </div>
+        </div>
     `;
     
     let seconds = 5;

@@ -6,24 +6,34 @@
     <title>Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
         :root {
             --bg: #0a0d14; /* Cyber Ink */
-            --card-bg: #121723; /* Deep Obsidian */
+            --card-bg: rgba(18, 23, 35, 0.6); /* Deep Obsidian Glass */
+            --card-border: rgba(255, 255, 255, 0.05);
+            --card-glow: rgba(99, 102, 241, 0.15);
             --primary: #6366f1; /* Electric Violet */
             --success: #10B981; /* Emerald Glow */
             --warning: #EF4444; /* Crimson Pulse */
             --text-muted: #94A3BB; /* Slate Gray */
-            --text: #fff;
-            --border: #334155;
-            --radius: 16px;
+            --text: #ffffff;
+            --radius: 24px;
         }
+
         body {
             background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08), transparent 25%);
+            background-attachment: fixed;
             color: var(--text);
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             margin: 0;
-            padding: 16px;
+            padding: 40px 24px;
+            min-height: 100vh;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -31,57 +41,145 @@
             flex-direction: column;
             gap: 24px;
         }
+
         .card {
             background: var(--card-bg);
-            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
             border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px var(--card-glow);
+        }
+
         .top-card {
             text-align: center;
-            font-size: 1.25rem;
-            font-weight: 500;
+            font-size: 1.5rem;
+            font-weight: 600;
             color: var(--text);
+            padding: 32px;
+            background: linear-gradient(145deg, rgba(99, 102, 241, 0.1), rgba(18, 23, 35, 0.6));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
         }
+
         .grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 24px;
         }
-        @media (min-width: 768px) {
+
+        @media (min-width: 800px) {
             .grid {
                 grid-template-columns: 1fr 1fr;
             }
         }
+
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 320px;
             width: 100%;
+            margin-top: 20px;
         }
+
         h2 {
             margin-top: 0;
-            font-size: 1.1rem;
-            color: var(--text-muted);
+            font-size: 1.25rem;
+            color: var(--text);
             font-weight: 600;
-            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--warning);
+            box-shadow: 0 0 12px var(--warning);
+        }
+
+        .grid .card:nth-child(2) h2::before {
+            background: var(--primary);
+            box-shadow: 0 0 12px var(--primary);
+        }
+        
+        .container > .card:last-child h2::before {
+            background: var(--success);
+            box-shadow: 0 0 12px var(--success);
+        }
+
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            margin-top: 16px;
         }
+
         th, td {
             text-align: left;
-            padding: 12px 8px;
-            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
         }
+
         th {
             color: var(--text-muted);
-            font-weight: 500;
-            font-size: 0.9rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 4px;
         }
-        tr:last-child td {
-            border-bottom: none;
+
+        td {
+            background: rgba(255,255,255,0.03);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        td:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        td:last-child {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        tr {
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        tr:hover td {
+            background: rgba(255,255,255,0.08);
+            transform: scale(1.01);
         }
     </style>
 </head>
@@ -120,8 +218,9 @@
     </div>
 
     <script>
-        Chart.defaults.color = '#64748B'; // Slate Gray
-        Chart.defaults.borderColor = '#334155';
+        Chart.defaults.color = '#94A3BB'; // Slate Gray
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
 
         async function loadData() {
             try {
@@ -140,11 +239,15 @@
                     data: {
                         labels: ['Better', 'Same', 'Worse'],
                         datasets: [
-                            { label: 'Boredom', data: [b.Better, b.Same, b.Worse], backgroundColor: '#DC143C' }, // Crimson Pulse
-                            { label: 'Study', data: [s.Better, s.Same, s.Worse], backgroundColor: '#10B981' } // Emerald Glow
+                            { label: 'Boredom', data: [b.Better, b.Same, b.Worse], backgroundColor: '#EF4444', borderRadius: 6 }, // Crimson Pulse
+                            { label: 'Study', data: [s.Better, s.Same, s.Worse], backgroundColor: '#10B981', borderRadius: 6 } // Emerald Glow
                         ]
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { font: { weight: 600 } } } }
+                    }
                 });
 
                 const dMood = data.daily_mood || [];
@@ -155,8 +258,8 @@
                         datasets: [{
                             label: 'Score (-1 to 1)',
                             data: dMood.map(d => d.score),
-                            borderColor: '#8A2BE2', // Electric Violet
-                            backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                            borderColor: '#6366f1', // Electric Violet
+                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
                             fill: true,
                             tension: 0.4
                         }]
