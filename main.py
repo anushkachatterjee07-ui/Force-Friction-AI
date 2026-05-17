@@ -22,6 +22,9 @@ app.add_middleware(
 IS_LOCKED = True
 UNLOCK_EXPIRY = None
 
+# Binary Souls team state
+team_state = {"partner_status": "FOCUSED"}
+
 @app.get("/api/status")
 async def get_status():
     """
@@ -50,23 +53,30 @@ async def get_status():
     # Default locked state
     return {"status": "LOCKED"}
 
+@app.get("/api/team/stats")
+async def get_team_stats():
+    """
+    Get the real-time focus status of the team/partner.
+    """
+    return team_state
+
 @app.post("/api/unlock")
 async def unlock():
     """
-    Unlock the system for exactly 15 minutes.
+    Unlock the system for exactly 2 minutes.
     """
     global IS_LOCKED, UNLOCK_EXPIRY
     
     IS_LOCKED = False
-    # Set expiry to exactly 15 minutes into the future from current UTC time
-    UNLOCK_EXPIRY = datetime.now(timezone.utc) + timedelta(minutes=15)
+    # Set expiry to exactly 2 minutes into the future from current UTC time
+    UNLOCK_EXPIRY = datetime.now(timezone.utc) + timedelta(minutes=2)
     
     # Log the successful unlock event
     database.log_event("SUCCESSFUL_UNLOCK", "System")
     
     return {
         "success": True, 
-        "message": "System unlocked for 15 minutes",
+        "message": "System unlocked for 2 minutes",
         "expiry": UNLOCK_EXPIRY.isoformat()
     }
 

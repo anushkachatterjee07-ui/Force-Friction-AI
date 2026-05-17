@@ -1,30 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "Focus Friction",
-  "version": "1.4",
-  "description": "Blocks YouTube and Instagram with a full-screen focus overlay.",
+  "name": "Focus Friction AI",
+  "version": "1.0",
+  "description": "Introduces mindful cognitive friction layers to break impulsive social media loops.",
   "permissions": [
-    "tabs",
-    "scripting"
+    "activeTab"
   ],
   "host_permissions": [
-    "*://*.youtube.com/*",
-    "*://*.instagram.com/*",
-    "*://*.tiktok.com/*"
+    "http://127.0.0.1:8000/*"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
   "content_scripts": [
     {
       "matches": [
         "*://*.youtube.com/*",
-        "*://*.instagram.com/*",
-        "*://*.tiktok.com/*"
+        "*://*.instagram.com/*"
       ],
-      "js": ["content.js"],
-      "run_at": "document_start",
-      "world": "ISOLATED"
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end"
     }
-  ]
+  ],
+  "action": {
+    "default_title": "Focus Friction AI"
+  }
 }
