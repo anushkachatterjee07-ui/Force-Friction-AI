@@ -4,7 +4,8 @@
   "version": "1.0",
   "description": "Introduces mindful cognitive friction layers to break impulsive social media loops.",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "host_permissions": [
     "http://127.0.0.1:8000/*"
