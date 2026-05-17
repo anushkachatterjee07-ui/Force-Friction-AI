@@ -1,254 +1,86 @@
-// content.js — Focus Friction AI
-// Polls the local FastAPI backend every 2 seconds.
-// LOCKED  → heavyForceBlock() keeps the barrier active
-// UNLOCKED → barrier is removed so the user can browse
+// Function to inject the dark cognitive barrier screen
+function heavyForceBlock() {
+    if (document.getElementById("binary-souls-barrier")) return;
 
-(function () {
-    'use strict';
+    const barrier = document.createElement("div");
+    barrier.id = "binary-souls-barrier";
+    barrier.innerHTML = `
+        <div style="text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; padding: 30px; background: #18181b; border: 1px solid #27272a; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-width: 450px;">
+            <h1 style="font-size: 28px; margin-bottom: 10px; color: #ef4444; font-weight: 700;">Loop Detected</h1>
+            <p style="font-size: 16px; color: #a1a1aa; margin-bottom: 25px; line-height: 1.5;">You opened a distracting site impulsively. Lock eyes with your camera for 5 seconds to unlock browsing.</p>
+            <div style="display: inline-block; padding: 8px 16px; background: #27272a; border-radius: 20px; font-size: 13px; color: #e4e4e7; font-weight: 500; margin-bottom: 15px;">
+                🛡️ Binary Souls Safety Layer Engaged
+            </div>
+            <div style="background: #27272a; border: 1px solid #3f3f46; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                <span style="font-weight: 600; color: #e4e4e7;">Binary Souls Partner</span>
+                <span id="partner-status" style="font-weight: bold; color: #a1a1aa;">Loading...</span>
+            </div>
+        </div>
+    `;
 
-    const BARRIER_ID  = 'ff-barrier';
-    const STYLE_ID    = 'ff-barrier-style';
-    const API_STATUS  = 'http://127.0.0.1:8000/api/status';
-    const API_INTENT  = 'http://127.0.0.1:8000/log-intent';
-    const API_UNLOCK  = 'http://127.0.0.1:8000/api/unlock';
-    const POLL_MS     = 2000;
+    // Apply full screen overlay styles
+    Object.assign(barrier.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "#09090b",
+        zIndex: "2147483647", // Max z-index to stay on top
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        transition: "opacity 0.5s ease"
+    });
 
-    let isProcessing = false;
+    document.body.appendChild(barrier);
 
-    /* ─────────────────────────────────────────────
-       heavyForceBlock()
-       Injects the mindful barrier with intent check.
-    ───────────────────────────────────────────── */
-    function heavyForceBlock(message = null, showButtons = true) {
-        injectStyle();
-
-        let barrier = document.getElementById(BARRIER_ID);
-        if (!barrier) {
-            barrier = document.createElement('div');
-            barrier.id = BARRIER_ID;
-            (document.body || document.documentElement).appendChild(barrier);
-        }
-
-        const siteName = window.location.hostname.replace('www.', '').split('.')[0];
-        const capitalizedSite = siteName.charAt(0).toUpperCase() + siteName.slice(1);
-
-        // Clear existing content to redraw
-        barrier.innerHTML = '';
-
-        const card = document.createElement('div');
-        card.className = 'ff-card';
-
-        const icon = document.createElement('div');
-        icon.className = 'ff-icon';
-        icon.textContent = message ? '🧠' : '🔒';
-
-        const title = document.createElement('div');
-        title.className = 'ff-title';
-        title.textContent = message ? 'Mindful Check-in' : `Why are you opening ${capitalizedSite}?`;
-
-        const sub = document.createElement('div');
-        sub.className = 'ff-sub';
-        sub.textContent = message || 'Select your intent to continue.';
-
-        card.appendChild(icon);
-        card.appendChild(title);
-        card.appendChild(sub);
-
-        if (showButtons) {
-            const btnContainer = document.createElement('div');
-            btnContainer.className = 'ff-btn-container';
-
-            const intents = [
-                { label: 'Study/Tutorial', value: 'study' },
-                { label: 'Work', value: 'work' },
-                { label: 'Relaxation', value: 'relaxation' },
-                { label: 'Habit / Boredom', value: 'boredom' },
-                { label: 'Emotional escape', value: 'escape' }
-            ];
-
-            intents.forEach(intent => {
-                const btn = document.createElement('button');
-                btn.className = 'ff-btn';
-                btn.textContent = intent.label;
-                btn.onclick = () => submitIntent(intent.label);
-                btnContainer.appendChild(btn);
-            });
-
-            card.appendChild(btnContainer);
-        } else if (message) {
-            // Show a "Continue" button for friction/nudge
-            const continueBtn = document.createElement('button');
-            continueBtn.className = 'ff-btn ff-btn-primary';
-            continueBtn.textContent = 'Continue to Site';
-            continueBtn.onclick = () => finalUnlock();
-            card.appendChild(continueBtn);
-        }
-
-        barrier.appendChild(card);
-
-        // Lock scrolling
-        const root = document.documentElement;
-        if (root) root.style.setProperty('overflow', 'hidden', 'important');
-        if (document.body) document.body.style.setProperty('overflow', 'hidden', 'important');
-    }
-
-    async function submitIntent(reason) {
-        if (isProcessing) return;
-        isProcessing = true;
-
-        try {
-            const site = window.location.hostname;
-            const response = await fetch(API_INTENT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    site: site,
-                    reason: reason,
-                    timestamp: new Date().toISOString()
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.action === 'allow') {
-                removeBarrier();
-            } else {
-                // Show friction or nudge message
-                heavyForceBlock(data.message, false);
-            }
-        } catch (err) {
-            console.error('Focus Friction: Error submitting intent', err);
-        } finally {
-            isProcessing = false;
-        }
-    }
-
-    async function finalUnlock() {
-        try {
-            await fetch(API_UNLOCK, { method: 'POST' });
-            removeBarrier();
-        } catch (err) {
-            console.error('Focus Friction: Error unlocking', err);
-        }
-    }
-
-    function removeBarrier() {
-        const barrier = document.getElementById(BARRIER_ID);
-        if (barrier) barrier.remove();
-
-        const style = document.getElementById(STYLE_ID);
-        if (style) style.remove();
-
-        // Restore scrolling
-        if (document.documentElement) document.documentElement.style.overflow = '';
-        if (document.body) document.body.style.overflow = '';
-    }
-
-    function injectStyle() {
-        if (document.getElementById(STYLE_ID)) return;
-
-        const s = document.createElement('style');
-        s.id = STYLE_ID;
-        s.textContent = `
-            #${BARRIER_ID} {
-                position: fixed !important;
-                inset: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                background: #121214 !important;
-                z-index: 2147483647 !important;
-                pointer-events: all !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-sizing: border-box !important;
-                font-family: 'Inter', -apple-system, sans-serif !important;
-            }
-            #${BARRIER_ID} .ff-card {
-                background: #1c1c21 !important;
-                border: 1px solid rgba(255,255,255,0.1) !important;
-                border-radius: 24px !important;
-                padding: 3rem !important;
-                text-align: center !important;
-                max-width: 500px !important;
-                width: 90% !important;
-                box-shadow: 0 40px 100px rgba(0,0,0,0.8) !important;
-            }
-            #${BARRIER_ID} .ff-icon {
-                font-size: 3.5rem !important;
-                margin-bottom: 1.5rem !important;
-            }
-            #${BARRIER_ID} .ff-title {
-                font-size: 1.8rem !important;
-                font-weight: 800 !important;
-                color: #fff !important;
-                margin-bottom: 0.8rem !important;
-                letter-spacing: -0.03em !important;
-            }
-            #${BARRIER_ID} .ff-sub {
-                font-size: 1.05rem !important;
-                line-height: 1.6 !important;
-                color: #a0a0ab !important;
-                margin-bottom: 2.5rem !important;
-            }
-            #${BARRIER_ID} .ff-btn-container {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 12px !important;
-            }
-            #${BARRIER_ID} .ff-btn {
-                background: #2a2a32 !important;
-                border: 1px solid rgba(255,255,255,0.05) !important;
-                color: #efeff1 !important;
-                padding: 14px !important;
-                border-radius: 12px !important;
-                font-size: 1rem !important;
-                font-weight: 600 !important;
-                cursor: pointer !important;
-                transition: all 0.2s ease !important;
-                text-align: center !important;
-            }
-            #${BARRIER_ID} .ff-btn:hover {
-                background: #3a3a45 !important;
-                transform: translateY(-2px) !important;
-                border-color: rgba(255,255,255,0.2) !important;
-            }
-            #${BARRIER_ID} .ff-btn-primary {
-                background: #6366f1 !important;
-                color: white !important;
-                margin-top: 10px !important;
-            }
-            #${BARRIER_ID} .ff-btn-primary:hover {
-                background: #4f46e5 !important;
-            }
-        `;
-
-        (document.head || document.documentElement).appendChild(s);
-    }
-
-    async function pollStatus() {
-        if (isProcessing) return;
-        try {
-            const response = await fetch(API_STATUS);
-            const data = await response.json();
-
-            if (data.status === 'UNLOCKED') {
-                removeBarrier();
-            } else {
-                // Only show initial barrier if not already showing a message
-                const barrier = document.getElementById(BARRIER_ID);
-                if (!barrier || barrier.innerHTML === '') {
-                    heavyForceBlock();
+    // Fetch team stats
+    fetch("http://127.0.0.1:8000/api/team/stats")
+        .then(res => res.json())
+        .then(data => {
+            const statusEl = document.getElementById("partner-status");
+            if (statusEl && data.partner_status) {
+                if (data.partner_status === "FOCUSED") {
+                    statusEl.innerText = "🟢 FOCUSED";
+                    statusEl.style.color = "#4ade80"; // green-400
+                } else if (data.partner_status === "IN A LOOP") {
+                    statusEl.innerText = "⚠️ IN A LOOP";
+                    statusEl.style.color = "#facc15"; // yellow-400
+                } else {
+                    statusEl.innerText = data.partner_status;
                 }
             }
-        } catch (err) {
-            heavyForceBlock();
-        }
+        })
+        .catch(err => console.log("Binary Souls: Stats fetch failed", err));
+}
+
+// Function to remove the barrier screen smoothly
+function removeBarrier() {
+    const barrier = document.getElementById("binary-souls-barrier");
+    if (barrier) {
+        barrier.style.opacity = "0";
+        setTimeout(() => barrier.remove(), 500);
     }
+}
 
-    heavyForceBlock();
-    setInterval(pollStatus, POLL_MS);
+// Main background checker loop
+async function checkServerStatus() {
+    try {
+        const response = await fetch("http://127.0.0.1:8000/api/status");
+        const data = await response.json();
 
-})();
+        if (data.status === "LOCKED") {
+            heavyForceBlock();
+        } else if (data.status === "UNLOCKED") {
+            removeBarrier();
+        }
+    } catch (err) {
+        console.log("Focus Friction AI: Waiting for FastAPI server backend...", err);
+        // Soft fallback: don't lock the user out if they are just coding with the server off
+    }
+}
+
+// Poll the backend status api endpoint every 2 seconds
+setInterval(checkServerStatus, 2000);
+checkServerStatus();

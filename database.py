@@ -121,14 +121,14 @@ def get_detailed_stats(platform: str):
     )
     last_unlock = cursor.fetchone()
     
-    last_session_mins = 15 # Default
+    last_session_mins = 2 # Default
     if last_unlock:
         unlock_time = datetime.fromisoformat(last_unlock[0])
-        # If the last unlock was less than 15 mins ago, the session is technically still active or just ended
+        # If the last unlock was less than 2 mins ago, the session is technically still active or just ended
         # But if we are here, it means the site is locked again.
-        # So the "last session" was likely the full 15 mins or the time until it was locked.
-        # For simplicity, we'll return 15.
-        last_session_mins = 15
+        # So the "last session" was likely the full 2 mins or the time until it was locked.
+        # For simplicity, we'll return 2.
+        last_session_mins = 2
 
     conn.close()
     
