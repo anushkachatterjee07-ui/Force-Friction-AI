@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
@@ -230,3 +231,10 @@ async def session_end_endpoint(request: SessionEndRequest):
         "message": message,
         "question": question
     }
+
+@app.get("/dashboard")
+async def dashboard():
+    """
+    Serve the dashboard HTML page.
+    """
+    return FileResponse("dashboard.html")
