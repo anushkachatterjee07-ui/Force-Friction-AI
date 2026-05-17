@@ -61,22 +61,22 @@ async def get_team_stats():
     return team_state
 
 @app.post("/api/unlock")
-async def unlock():
+async def unlock(minutes: int = 5):
     """
-    Unlock the system for exactly 2 minutes.
+    Unlock the system for a specified number of minutes (default 5).
     """
     global IS_LOCKED, UNLOCK_EXPIRY
     
     IS_LOCKED = False
-    # Set expiry to exactly 2 minutes into the future from current UTC time
-    UNLOCK_EXPIRY = datetime.now(timezone.utc) + timedelta(minutes=2)
+    # Set expiry to exactly `minutes` into the future from current UTC time
+    UNLOCK_EXPIRY = datetime.now(timezone.utc) + timedelta(minutes=minutes)
     
     # Log the successful unlock event
     database.log_event("SUCCESSFUL_UNLOCK", "System")
     
     return {
         "success": True, 
-        "message": "System unlocked for 2 minutes",
+        "message": f"System unlocked for {minutes} minutes",
         "expiry": UNLOCK_EXPIRY.isoformat()
     }
 

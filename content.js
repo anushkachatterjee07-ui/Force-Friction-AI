@@ -6,8 +6,12 @@ function heavyForceBlock() {
     barrier.id = "binary-souls-barrier";
     barrier.innerHTML = `
         <div style="text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; padding: 30px; background: #18181b; border: 1px solid #27272a; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-width: 450px;">
-            <h1 style="font-size: 28px; margin-bottom: 10px; color: #ef4444; font-weight: 700;">Loop Detected</h1>
-            <p style="font-size: 16px; color: #a1a1aa; margin-bottom: 25px; line-height: 1.5;">You opened a distracting site impulsively. Lock eyes with your camera for 5 seconds to unlock browsing.</p>
+            <h1 style="font-size: 28px; margin-bottom: 10px; color: #ef4444; font-weight: 700;">Intent Check</h1>
+            <p style="font-size: 16px; color: #a1a1aa; margin-bottom: 20px; line-height: 1.5;">Why do you want to visit this site?</p>
+            <input type="text" id="intent-input" placeholder="I am here because..." style="width: 100%; padding: 12px; margin-bottom: 20px; background: #27272a; border: 1px solid #3f3f46; border-radius: 8px; color: white; box-sizing: border-box; font-size: 14px;" />
+            <button id="unlock-btn" style="background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 15px; transition: background 0.2s;">
+                Unlock for 5 Minutes
+            </button>
             <div style="display: inline-block; padding: 8px 16px; background: #27272a; border-radius: 20px; font-size: 13px; color: #e4e4e7; font-weight: 500; margin-bottom: 15px;">
                 🛡️ Binary Souls Safety Layer Engaged
             </div>
@@ -34,6 +38,40 @@ function heavyForceBlock() {
     });
 
     document.body.appendChild(barrier);
+
+    // Add event listener for the intent unlock button
+    const unlockBtn = document.getElementById("unlock-btn");
+    if (unlockBtn) {
+        unlockBtn.addEventListener("click", async () => {
+            const reason = document.getElementById("intent-input").value;
+            if (!reason.trim()) {
+                alert("Please enter a reason.");
+                return;
+            }
+            
+            try {
+                // Log the intent to the backend
+                await fetch("http://127.0.0.1:8000/log-intent", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        site: window.location.hostname,
+                        reason: reason,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                // Trigger the 5 minute unlock explicitly
+                await fetch("http://127.0.0.1:8000/api/unlock?minutes=5", {
+                    method: "POST"
+                });
+                
+                removeBarrier();
+            } catch (err) {
+                console.error("Failed to process intent unlock", err);
+            }
+        });
+    }
 
     // Fetch team stats
     fetch("http://127.0.0.1:8000/api/team/stats")
