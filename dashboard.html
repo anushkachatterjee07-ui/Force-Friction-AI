@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #111;
+            --text: #fff;
+            --border: #333;
+            --radius: 16px;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .card {
+            background: #1a1a1a;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .top-card {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #ccc;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            color: #888;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card top-card" id="correlationText">Loading...</div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>Boredom vs Study Mood</h2>
+                <div class="chart-container">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>7-Day Mood Score</h2>
+                <div class="chart-container">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Top Sites by Worse Count</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Worse Count</th>
+                        <th>Avg Session</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        Chart.defaults.color = '#888';
+        Chart.defaults.borderColor = '#333';
+
+        async function loadData() {
+            try {
+                const res = await fetch('http://localhost:8000/get-mood-stats');
+                const data = await res.json();
+                
+                const b = data.boredom_moods || {Better: 0, Same: 0, Worse: 0};
+                const s = data.study_moods || {Better: 0, Same: 0, Worse: 0};
+                const totalDataPoints = b.Better + b.Same + b.Worse + s.Better + s.Same + s.Worse;
+                
+                document.getElementById('correlationText').textContent = 
+                    totalDataPoints < 5 ? "Need more data" : (data.correlation_text || "No correlation data.");
+
+                new Chart(document.getElementById('barChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Better', 'Same', 'Worse'],
+                        datasets: [
+                            { label: 'Boredom', data: [b.Better, b.Same, b.Worse], backgroundColor: '#ff6b6b' },
+                            { label: 'Study', data: [s.Better, s.Same, s.Worse], backgroundColor: '#4ecdc4' }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                const dMood = data.daily_mood || [];
+                new Chart(document.getElementById('lineChart'), {
+                    type: 'line',
+                    data: {
+                        labels: dMood.map(d => d.date),
+                        datasets: [{
+                            label: 'Score (-1 to 1)',
+                            data: dMood.map(d => d.score),
+                            borderColor: '#feca57',
+                            backgroundColor: 'rgba(254, 202, 87, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { y: { min: -1, max: 1 } }
+                    }
+                });
+
+                const tbody = document.getElementById('tableBody');
+                const sites = data.top_sites || [];
+                sites.slice(0, 3).forEach(site => {
+                    const tr = document.createElement('tr');
+                    const sec = Math.round(site.avg_sec || 0);
+                    tr.innerHTML = `
+                        <td>${site.site}</td>
+                        <td>${site.worse_count}</td>
+                        <td>${Math.floor(sec / 60)}m ${sec % 60}s</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                document.getElementById('correlationText').textContent = "Failed to load data.";
+                console.error(e);
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>
