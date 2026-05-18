@@ -447,10 +447,7 @@
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
-                    const dateStr = d.toISOString().split("T")[0];
-                    if (dateStr >= "2026-05-17") {
-                        sortedDates.push(dateStr);
-                    }
+                    sortedDates.push(d.toISOString().split("T")[0]);
                 }
                 return sortedDates;
             },
