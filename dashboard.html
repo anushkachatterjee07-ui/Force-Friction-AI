@@ -222,6 +222,9 @@
         Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
         Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
 
+        let barChartInstance = null;
+        let lineChartInstance = null;
+
         async function loadData() {
             try {
                 const res = await fetch('http://localhost:8000/get-mood-stats');
@@ -234,7 +237,8 @@
                 document.getElementById('correlationText').textContent = 
                     totalDataPoints < 5 ? "Need more data" : (data.correlation_text || "No correlation data.");
 
-                new Chart(document.getElementById('barChart'), {
+                if (barChartInstance) barChartInstance.destroy();
+                barChartInstance = new Chart(document.getElementById('barChart'), {
                     type: 'bar',
                     data: {
                         labels: ['Better', 'Same', 'Worse'],
@@ -251,7 +255,8 @@
                 });
 
                 const dMood = data.daily_mood || [];
-                new Chart(document.getElementById('lineChart'), {
+                if (lineChartInstance) lineChartInstance.destroy();
+                lineChartInstance = new Chart(document.getElementById('lineChart'), {
                     type: 'line',
                     data: {
                         labels: dMood.map(d => d.date),
@@ -272,6 +277,7 @@
                 });
 
                 const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
                 const sites = data.top_sites || [];
                 sites.slice(0, 3).forEach(site => {
                     const tr = document.createElement('tr');
@@ -289,6 +295,7 @@
             }
         }
         loadData();
+        setInterval(loadData, 300000); // 5 minutes = 300,000 ms
     </script>
 </body>
 </html>
