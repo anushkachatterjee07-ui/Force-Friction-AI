@@ -92,6 +92,13 @@ async def log_activity(request: LogRequest):
     database.log_event(request.event_type, request.platform)
     return {"success": True, "message": "Event logged successfully"}
 
+@app.get("/api/log")
+async def get_raw_logs():
+    """
+    Retrieve raw session logs for dynamic dashboard calculations.
+    """
+    return database.get_raw_logs()
+
 @app.get("/api/analytics")
 async def get_analytics():
     """

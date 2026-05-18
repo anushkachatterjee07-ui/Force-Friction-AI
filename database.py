@@ -261,5 +261,25 @@ def get_mood_statistics():
         "top_sites": top_sites
     }
 
+def get_raw_logs():
+    """Retrieves all raw logs from the focus_logs table ordered by timestamp."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, timestamp, event_type, platform, reason FROM focus_logs ORDER BY timestamp DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    logs = []
+    for row in rows:
+        logs.append({
+            "id": row[0],
+            "timestamp": row[1],
+            "event_type": row[2],
+            "platform": row[3],
+            "reason": row[4]
+        })
+    return logs
+
 # Self-initialize on import so the DB file is automatically created on startup
 init_db()
+
