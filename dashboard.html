@@ -323,7 +323,7 @@
                 </div>
             </div>
             <div class="card">
-                <h2>7-Day Mood Score</h2>
+                <h2>Focus Mood Live Feed</h2>
                 <div class="chart-container">
                     <canvas id="lineChart"></canvas>
                 </div>
@@ -375,6 +375,39 @@
                 const studyMoods = { Better: 0, Same: 0, Worse: 0 };
                 const dailyMoodScores = {};
                 const siteStats = {};
+                
+                // Extract latest 10 mood logs in chronological order for the live data feed
+                const moodLogs = logs.filter(log => log.event_type === "MOOD_LOGGED");
+                const latest10 = moodLogs.slice(0, 10).reverse();
+                const liveMoodFeed = latest10.map(log => {
+                    const parts = (log.reason || "").split(":");
+                    const rating = parts[1] ? parts[1].trim() : "";
+                    const intent = parts[0] ? parts[0].trim() : "";
+                    const platform = log.platform ? log.platform.replace("www.", "") : "";
+                    const timestamp = log.timestamp || "";
+                    
+                    let score = 0;
+                    if (rating === "Better") score = 1.0;
+                    else if (rating === "Same") score = 0.0;
+                    else if (rating === "Worse") score = -1.0;
+                    
+                    let label = "";
+                    if (timestamp) {
+                        const dateObj = new Date(timestamp);
+                        const isToday = new Date().toDateString() === dateObj.toDateString();
+                        const datePrefix = isToday ? "Today" : dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        label = `${datePrefix} ${timeStr}`;
+                    }
+                    
+                    return {
+                        label,
+                        score,
+                        rating,
+                        intent,
+                        platform
+                    };
+                });
                 
                 logs.forEach(log => {
                     const et = log.event_type;
@@ -432,7 +465,8 @@
                     boredomMoods,
                     studyMoods,
                     dailyMoodScores,
-                    siteStats
+                    siteStats,
+                    liveMoodFeed
                 };
             },
             
@@ -573,7 +607,7 @@
                 });
             },
             
-            renderLineChart(canvasId, dailyMoodList) {
+            renderLineChart(canvasId, liveMoodFeed) {
                 if (this.lineChartInstance) this.lineChartInstance.destroy();
                 
                 const ctx = document.getElementById(canvasId).getContext('2d');
@@ -584,18 +618,10 @@
                 this.lineChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: dailyMoodList.map(d => {
-                            const parts = d.date.split('-');
-                            if (parts.length === 3) {
-                                // Create Date in local timezone to avoid UTC offset shifts in presentation
-                                const localDate = new Date(parts[0], parts[1] - 1, parts[2]);
-                                return localDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                            }
-                            return d.date;
-                        }),
+                        labels: liveMoodFeed.map(d => d.label),
                         datasets: [{
-                            label: 'Focus Mood Index',
-                            data: dailyMoodList.map(d => d.score),
+                            label: 'Focus Mood Live Feed',
+                            data: liveMoodFeed.map(d => d.score),
                             borderColor: '#818cf8', // Electric Violet
                             borderWidth: 4, // Bold professional line width
                             backgroundColor: violetGrad,
@@ -629,10 +655,13 @@
                                 callbacks: {
                                     label: function(context) {
                                         let val = context.raw;
-                                        let moodLabel = 'Same';
-                                        if (val > 0.1) moodLabel = 'Better';
-                                        if (val < -0.1) moodLabel = 'Worse';
-                                        return `Mood Index: ${val} (${moodLabel})`;
+                                        const idx = context.dataIndex;
+                                        const item = liveMoodFeed[idx];
+                                        if (item) {
+                                            const siteInfo = item.platform ? ` on ${item.platform}` : '';
+                                            return `Mood: ${item.rating} (${val > 0 ? '+' : ''}${val})${siteInfo}`;
+                                        }
+                                        return `Mood Index: ${val}`;
                                     }
                                 }
                             }
@@ -662,8 +691,10 @@
                                     color: '#94a3b8',
                                     font: {
                                         weight: 600,
-                                        size: 11
-                                    }
+                                        size: 10
+                                    },
+                                    maxRotation: 30,
+                                    minRotation: 30
                                 }
                             }
                         }
@@ -759,10 +790,8 @@
                 // 3. Render Boredom vs Study Mood (Bar Chart)
                 ChartManager.renderBarChart('barChart', processed.boredomMoods, processed.studyMoods);
                 
-                // 4. Render 7-Day Mood Score (Line Chart)
-                const dateRange = DataProcessor.get7DayDateRange();
-                const dailyMoodList = DataProcessor.generateDailyMoodList(processed.dailyMoodScores, dateRange);
-                ChartManager.renderLineChart('lineChart', dailyMoodList);
+                // 4. Render Focus Mood Live Feed (Line Chart)
+                ChartManager.renderLineChart('lineChart', processed.liveMoodFeed);
                 
                 // 5. Render Top Distracting Sites Leaderboard
                 const sortedSites = DataProcessor.generateSortedSites(processed.siteStats);
