@@ -197,7 +197,7 @@ async def log_intent_endpoint(request: IntentRequest):
     database.log_intent(request.site, request.reason, request.timestamp)
     
     # 2. Get detailed stats for evaluation
-    stats = database.get_detailed_stats(request.site)
+    stats = database.get_stats(request.site)
     visits_2h = stats["visits_2h"]
     boredom_total = stats["boredom_total"]
     last_session_mins = stats["last_session_mins"]
@@ -265,3 +265,10 @@ async def dashboard():
     Serve the dashboard HTML page.
     """
     return FileResponse("dashboard.html")
+
+@app.get("/get-mood-stats")
+async def get_mood_stats():
+    """
+    Retrieve mood analytics for the dashboard.
+    """
+    return database.get_mood_statistics()

@@ -258,3 +258,4 @@ def seed_sample_data():
 
 # Self-initialize on import so the DB file is automatically created on startup
 init_db()
+
