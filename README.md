@@ -89,21 +89,58 @@ Navigate to `http://127.0.0.1:8000/dashboard` in your web browser to view your m
 ### 1. Technical Architecture
 
 ```text
-[ Chrome Extension ] (Client Layer)
-   │
-   ├─ Content Scripts (DOM Interception & Block UI)
-   ├─ Background Service Worker (API Communication & Sync)
-   │
-   ▼  HTTP/REST (JSON)
-[ FastAPI Backend ] (Application Layer)
-   │
-   ├─ API Router (/api/status, /api/team/stats)
-   │
-   ├──▶ [ OpenCV Engine ] (Computer Vision)
-   │       └─ Asynchronous Face-Lock Detection & Verification
-   │
-   └──▶ [ SQLite Database ] (Persistence Layer)
-           └─ Focus State, Session Logs & "Binary Souls" Team Sync
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                                CLIENT LAYER (Browser Host)                                              │
+ │  ┌─────────────────────────────────────────────────────────────────┐   ┌─────────────────────────────────────────────┐  │
+ │  │                     CHROME EXTENSION FRONTEND                   │   │             ANALYTICS DASHBOARD             │  │
+ │  │                 (Manifest V3 / DOM Interceptor)                 │   │              (Pure HTML5/CSS/JS)            │  │
+ │  │                                                                 │   │                                             │  │
+ │  │  • Intercepts DOM on YouTube/Instagram before loading page      │   │  • Assembles data visualizations via        │  │
+ │  │  • Injects modern, unclosable focus-friction modal overlay      │   │    Chart.js rendering canvas elements       │  │
+ │  │  • Fetches teammate lock state updates ("Binary Souls")         │   │  • Displays behavioral statistics, mood     │  │
+ │  │  • Captures study-btn, break-btn, and bored-btn click events    │   │    trends, and daily distraction loops      │  │
+ │  └────────────────────────────────┬────────────────────────────────┘   └──────────────────────▲──────────────────────┘  │
+ └───────────────────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────┘
+                                     │                                                           │
+         1. [GET]  /api/status       │ ──► (Inquire global locked/unlocked state & time window)  │ 6. [GET] /api/analytics
+         ────────────────────────────┼───────────────────────────────────────────────────────────┘ ──► (Fetch logs summary)
+         2. [POST] /log-intent       │ ──► (Submit user reason & evaluate friction levels)
+         ────────────────────────────┼───────────────────────────────────────────────────────────┐
+         3. [POST] /api/unlock       │ ──► (Instant bypass click triggers unlock on server)      │
+         ────────────────────────────┼─────────────────────────────────────────────────────┐     │
+         4. [POST] /api/session-end  │ ──► (Logs active duration & triggers post-reflection)│     │
+         ────────────────────────────┼──────────────────────────────┐                      │     │
+         5. [GET]  /api/team/stats   │ ──► (Social accountability)  │                      │     │
+                                     ▼                              ▼                      ▼     ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                           APPLICATION ROUTING LAYER (FastAPI)                                           │
+ │  ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │                                                main.py (Web Server)                                               │  │
+ │  │                                                                                                                   │  │
+ │  │  • State Tracker: Manages transient system memory (IS_LOCKED state status, UNLOCK_EXPIRY UTC timestamp logs)      │  │
+ │  │  • Intent Engine: Analyzes user-defined reason against historical metrics to evaluate current behavior category   │  │
+ │  │  • Copy Generator: Employs gentle "we" phrasing to shape empathetic, non-judgmental guidance messages             │  │
+ │  │  • Social Controller: Orchestrates state syncing for team mode ("Binary Souls" status configurations)            │  │
+ │  └──────────────────────────▲─────────────────────────────────────────────────────────────────┬─────────────────────┘  │
+ └─────────────────────────────┼─────────────────────────────────────────────────────────────────┼─────────────────────────┘
+                               │                                                                 │
+                               │ 7. [POST] /api/unlock                                           │ 9. Internal DB Methods
+                               │    ◄── (Trigger unlock on 5s contiguous webcam face lock)       │    (database.py calls:
+                               │                                                                 │     log_intent, log_event,
+                               │ 8. [POST] /api/log                                              │     get_analytics_summary)
+                               │    ◄── (Transmit system telemetry verification logs)            │
+                               │                                                                 ▼
+ ┌─────────────────────────────┴─────────────────────────────────────┐   ┌───────────────────────┴───────────────────────┐
+ │               ASYNCHRONOUS ML PROCESSING PIPELINE                 │   │             DATABASE PERSISTENCE              │
+ │  ┌─────────────────────────────────────────────────────────────┐  │   │  ┌──────────────────────────────────────────┐  │
+ │  │             OPENCV VISION ENGINE (vision_engine.py)         │  │   │  │              SQLite3 DATABASE            │  │
+ │  │                                                             │  │   │  │               (analytics.db)             │  │
+ │  │  • Frame Capture: cv2.VideoCapture(0) camera loop           │  │   │  │                                          │  │
+ │  │  • Image Preprocessing: Horizontal flip & grayscale transform │  │   │  │  • intent_logs table: User reasons & logs│  │
+ │  │  • Haar Cascade: haarcascade_frontalface_default face match │  │   │  │  • session_logs table: Active durations  │  │
+ │  │  • Temporal Streak: Calculates contiguous 5.0-second focus  │  │   │  │  • activity_logs table: Lock state history│  │
+ │  └─────────────────────────────────────────────────────────────┘  │   │  └──────────────────────────────────────────┘  │
+ └───────────────────────────────────────────────────────────────────┘   └───────────────────────────────────────────────┘
 ```
 
 ### 2. System Lifecycle
