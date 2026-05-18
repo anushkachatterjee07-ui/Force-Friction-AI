@@ -24,19 +24,22 @@ def init_db():
         pass # Column already exists
     conn.commit()
     conn.close()
+    
+    # Seed rich metrics for the dashboard charts
+    seed_sample_data()
 
-def log_event(event_type: str, platform: str):
+def log_event(event_type: str, platform: str, reason: str = None):
     """
     Logs an event to the database.
-    Example event_types: 'BLOCKED_ATTEMPT', 'SUCCESSFUL_UNLOCK'
+    Example event_types: 'BLOCKED_ATTEMPT', 'SUCCESSFUL_UNLOCK', 'MOOD_LOGGED', 'SESSION_ENDED'
     """
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     # Use UTC for consistent timestamping
     timestamp = datetime.now(timezone.utc).isoformat()
     cursor.execute(
-        "INSERT INTO focus_logs (timestamp, event_type, platform) VALUES (?, ?, ?)",
-        (timestamp, event_type, platform)
+        "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+        (timestamp, event_type, platform, reason)
     )
     conn.commit()
     conn.close()
@@ -159,6 +162,99 @@ def get_stats(platform: str):
         "visits_today": visits_today,
         **detailed
     }
+
+def get_all_logs():
+    """Retrieves all logs from the database, newest first."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, timestamp, event_type, platform, reason FROM focus_logs ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    logs = []
+    for row in rows:
+        logs.append({
+            "id": row[0],
+            "timestamp": row[1],
+            "event_type": row[2],
+            "platform": row[3],
+            "reason": row[4]
+        })
+    return logs
+
+def seed_sample_data():
+    """Seeds the database with realistic logs if no mood logs exist."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    
+    # Check if we already have seeded or logged mood data
+    try:
+        cursor.execute("SELECT COUNT(*) FROM focus_logs WHERE event_type = 'MOOD_LOGGED'")
+        count = cursor.fetchone()[0]
+    except sqlite3.OperationalError:
+        # If table focus_logs doesn't exist yet, we'll return and let init_db finish
+        conn.close()
+        return
+
+    if count > 0:
+        conn.close()
+        return
+
+    print("Seeding SQLite database with high-fidelity sample metrics for dashboard...")
+    import random
+    
+    now = datetime.now(timezone.utc)
+    platforms = ["www.youtube.com", "www.instagram.com"]
+    intents = ["study", "boredom"]
+    
+    for day_offset in range(7, -1, -1):
+        day_date = now - timedelta(days=day_offset)
+        num_sessions = random.randint(3, 6)
+        for _ in range(num_sessions):
+            platform = random.choice(platforms)
+            intent = random.choice(intents)
+            
+            hour = random.randint(8, 22)
+            minute = random.randint(0, 59)
+            session_time = day_date.replace(hour=hour, minute=minute).isoformat()
+            
+            # 1. Intent Logged
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (session_time, "INTENT_LOGGED", platform, intent)
+            )
+            
+            # 2. Successful Unlock
+            unlock_time = (day_date.replace(hour=hour, minute=minute) + timedelta(seconds=2)).isoformat()
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (unlock_time, "SUCCESSFUL_UNLOCK", platform, None)
+            )
+            
+            # 3. Session End & Duration (in seconds, e.g. 10m to 50m)
+            duration_mins = random.randint(10, 22) if intent == "boredom" else random.randint(25, 55)
+            duration_secs = duration_mins * 60
+            end_time = (day_date.replace(hour=hour, minute=minute) + timedelta(minutes=duration_mins)).isoformat()
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (end_time, "SESSION_ENDED", platform, f"{intent}:{duration_secs}")
+            )
+            
+            # 4. Mood Logged
+            if intent == "study":
+                mood = random.choices(["Better", "Same", "Worse"], weights=[75, 15, 10])[0]
+            else:
+                mood = random.choices(["Better", "Same", "Worse"], weights=[10, 25, 65])[0]
+                
+            mood_time = (day_date.replace(hour=hour, minute=minute) + timedelta(minutes=duration_mins, seconds=5)).isoformat()
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (mood_time, "MOOD_LOGGED", platform, f"{intent}:{mood}")
+            )
+            
+    conn.commit()
+    conn.close()
+    print("Database seeding completed.")
 
 # Self-initialize on import so the DB file is automatically created on startup
 init_db()
