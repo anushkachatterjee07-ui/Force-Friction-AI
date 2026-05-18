@@ -10,8 +10,12 @@ Force-Friction AI is a behavior-aware focus tool designed to break the cycle of 
   - **Productive Intent Validation**: Supports deep work with tiered feedback (Silent Allow, Positive Reinforcement, Mindful Escalation).
   - **Mindful Browsing Pause**: A data-backed awareness pause encouraging a reset after mindless browsing loops.
 - **Session Reflection (Mindful Silence)**: Evaluates your session time after the unlock period expires. It remains silently out of your way for short, intentional sessions (<5 minutes), but generates brief, actionable reflection messages for longer, potentially distracting sessions.
-- **Deep Analytics Dashboard (Bento Grid 2.0)**: Tracks visit counts, boredom-driven triggers, and session durations, visualizing your digital habits with charts and personalized insights within a sleek Bento Grid layout.
-- **Cyber-Ink Aesthetic**: A cohesive, premium dark-mode design language applied across the web dashboard and browser extension overlay, featuring smooth micro-animations and a functional progress bar.
+- **Real-Time Live Analytics Dashboard (Bento Grid 2.0)**:
+  - **Blended Sinusoidal Mood Scoring**: Restores a gorgeous mathematical sinusoidal baseline (40% contribution) blended with real SQLite focus telemetry (60% contribution). This renders a fluid, perfectly smooth rolling 7-day sine wave on the timeline line chart, completely preventing harsh layout jaggedness.
+  - **May 17th Launch Filtering**: Employs database-level filtering to ensure all core metrics, Boredom vs Study ratios, and the Addictive Sites Leaderboard strictly represent active logs on or after May 17, 2026.
+  - **3-Second Live Polling Loop**: The frontend silently syncs raw logs from the FastAPI backend every 3 seconds to keep metrics updated in real-time.
+  - **Neon Status Sync Badge**: A pulsing status indicator (`Live Sync Active (Updated at HH:MM:SS)`) that updates its timestamp dynamically on every sync cycle.
+- **Cyber-Ink Aesthetic**: A cohesive, premium glassmorphism dark-mode design language applied across the web dashboard and browser extension overlay, featuring smooth micro-animations, vibrant gradients, and a functional progress bar.
 
 ## 🛠️ Tech Stack
 
