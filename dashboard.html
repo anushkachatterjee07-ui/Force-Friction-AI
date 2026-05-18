@@ -377,11 +377,17 @@
                 const siteStats = {};
                 
                 logs.forEach(log => {
+                    const timestamp = log.timestamp || "";
+                    const dateStr = timestamp ? timestamp.split("T")[0] : "";
+                    
+                    // Filter: Only include dynamic data from May 17, 2026 and onwards
+                    if (!dateStr || dateStr < "2026-05-17") {
+                        return;
+                    }
+                    
                     const et = log.event_type;
                     const plat = log.platform ? log.platform.replace("www.", "") : "";
                     const reason = log.reason || "";
-                    const timestamp = log.timestamp || "";
-                    const dateStr = timestamp ? timestamp.split("T")[0] : "";
                     
                     if (et === "MOOD_LOGGED") {
                         const parts = reason.split(":");
@@ -441,7 +447,10 @@
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
-                    sortedDates.push(d.toISOString().split("T")[0]);
+                    const dateStr = d.toISOString().split("T")[0];
+                    if (dateStr >= "2026-05-17") {
+                        sortedDates.push(dateStr);
+                    }
                 }
                 return sortedDates;
             },
