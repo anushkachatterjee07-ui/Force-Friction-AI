@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Focus Friction AI - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         
         :root {
-            --bg: #0a0d14; /* Cyber Ink */
-            --card-bg: rgba(18, 23, 35, 0.6); /* Deep Obsidian Glass */
-            --card-border: rgba(255, 255, 255, 0.05);
-            --card-glow: rgba(99, 102, 241, 0.15);
+            --bg: #060910; /* Extra Deep Cyber Ink */
+            --card-bg: rgba(13, 17, 28, 0.7); /* Premium High-Contrast Obsidian Glass */
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-glow: rgba(99, 102, 241, 0.2);
             --primary: #6366f1; /* Electric Violet */
-            --success: #10B981; /* Emerald Glow */
-            --warning: #EF4444; /* Crimson Pulse */
-            --text-muted: #94A3BB; /* Slate Gray */
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --success: #30d158; /* iOS Vibrant Green */
+            --warning: #ff3b30; /* iOS Vibrant Red */
+            --text-muted: #94a3b8; /* Slate Gray */
             --text: #ffffff;
             --radius: 24px;
         }
@@ -24,13 +25,13 @@
         body {
             background-color: var(--bg);
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08), transparent 25%);
+                radial-gradient(circle at 10% 40%, rgba(99, 102, 241, 0.09), transparent 30%),
+                radial-gradient(circle at 90% 20%, rgba(48, 209, 88, 0.09), transparent 30%);
             background-attachment: fixed;
             color: var(--text);
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             margin: 0;
-            padding: 40px 24px;
+            padding: 32px 24px;
             min-height: 100vh;
         }
 
@@ -142,21 +143,118 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px; /* Full-viewport premium responsive scale */
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 28px;
+            width: 100%;
+        }
+
+        /* Premium Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1.2px;
+            background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 60%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .brand p {
+            margin: 6px 0 0 0;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .status-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .sync-status {
+            background: rgba(48, 209, 88, 0.08);
+            border: 1px solid rgba(48, 209, 88, 0.2);
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #30d158;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(48, 209, 88, 0.08);
+        }
+
+        .refresh-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text);
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 20px var(--card-glow);
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0px);
+        }
+
+        /* Pulsing Dot Animation */
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.25); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* Spin Animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spinning svg {
+            animation: spin 0.8s linear infinite;
         }
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 32px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -166,55 +264,56 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; height: 100%;
-            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 100%);
             pointer-events: none;
         }
 
         .card:hover {
             transform: translateY(-4px);
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px var(--card-glow);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 0 24px var(--card-glow);
         }
 
         .top-card {
             text-align: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            line-height: 1.6;
             font-weight: 600;
             color: var(--text);
-            padding: 32px;
-            background: linear-gradient(145deg, rgba(99, 102, 241, 0.1), rgba(18, 23, 35, 0.6));
-            border: 1px solid rgba(99, 102, 241, 0.25);
+            padding: 24px 32px;
+            background: linear-gradient(145deg, rgba(99, 102, 241, 0.12), rgba(13, 17, 28, 0.7));
+            border: 1px solid rgba(99, 102, 241, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 80px;
+            min-height: 50px;
         }
 
         .grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 24px;
+            gap: 28px;
         }
 
-        @media (min-width: 800px) {
+        @media (min-width: 900px) {
             .grid {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr 1fr; /* Equal width side-by-side scaling */
             }
         }
 
         .chart-container {
             position: relative;
-            height: 320px;
+            height: 380px; /* High-impact professional chart height */
             width: 100%;
-            margin-top: 20px;
+            margin-top: 24px;
         }
 
         h2 {
             margin-top: 0;
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             color: var(--text);
-            font-weight: 600;
-            letter-spacing: -0.3px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -228,17 +327,17 @@
             height: 12px;
             border-radius: 50%;
             background: var(--warning);
-            box-shadow: 0 0 12px var(--warning);
+            box-shadow: 0 0 14px var(--warning);
         }
 
         .grid .card:nth-child(2) h2::before {
             background: var(--primary);
-            box-shadow: 0 0 12px var(--primary);
+            box-shadow: 0 0 14px var(--primary);
         }
         
         .container > .card:last-child h2::before {
             background: var(--success);
-            box-shadow: 0 0 12px var(--success);
+            box-shadow: 0 0 14px var(--success);
         }
 
         table {
@@ -250,7 +349,7 @@
 
         th, td {
             text-align: left;
-            padding: 16px 20px;
+            padding: 18px 24px;
         }
 
         th {
@@ -258,26 +357,31 @@
             font-weight: 600;
             font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            padding-bottom: 4px;
+            letter-spacing: 1.2px;
+            padding-bottom: 6px;
         }
 
         td {
-            background: rgba(255,255,255,0.03);
+            background: rgba(255,255,255,0.025);
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 1rem;
+            vertical-align: middle;
+            border-top: 1px solid rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.02);
         }
 
         td:first-child {
-            border-top-left-radius: 12px;
-            border-bottom-left-radius: 12px;
-            color: #fff;
+            border-top-left-radius: 14px;
+            border-bottom-left-radius: 14px;
+            border-left: 1px solid rgba(255,255,255,0.02);
+            color: #ffffff;
             font-weight: 600;
         }
         
         td:last-child {
-            border-top-right-radius: 12px;
-            border-bottom-right-radius: 12px;
+            border-top-right-radius: 14px;
+            border-bottom-right-radius: 14px;
+            border-right: 1px solid rgba(255,255,255,0.02);
         }
 
         tr {
@@ -285,30 +389,35 @@
         }
 
         tr:hover td {
-            background: rgba(255,255,255,0.08);
-            transform: scale(1.01);
+            background: rgba(255,255,255,0.06);
+            transform: scale(1.003);
+            border-color: rgba(99, 102, 241, 0.2);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div>
-                <h1>FORCE-FRICTION AI</h1>
-                <p class="subtitle">Intent-Based Attention & Mood Analytics Dashboard</p>
+        <!-- Dashboard Premium Header -->
+        <header class="dashboard-header">
+            <div class="brand">
+                <h1>Force Friction AI</h1>
+                <p>Social Accountability & Digital Habit Diagnostics</p>
             </div>
-            <div class="header-actions">
-                <div class="live-status">
-                    <span class="live-pulse"></span>
-                    <span class="live-text">AUTO-REFRESH: ACTIVE</span>
+            <div class="status-controls">
+                <div class="sync-status" id="syncStatus">
+                    <span style="display:inline-block; width:8px; height:8px; background:#30d158; border-radius:50%; box-shadow:0 0 8px #30d158; margin-right:8px; animation: pulse 2s infinite;"></span>
+                    Live Sync Connecting...
                 </div>
-                <button class="btn-refresh" onclick="triggerManualRefresh()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
+                    <span class="refresh-icon" style="display:flex; align-items:center;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    </span>
                     Refresh
                 </button>
             </div>
-        </div>
-        <div class="card top-card" id="correlationText">Loading...</div>
+        </header>
+
+        <div class="card top-card" id="correlationText">Evaluating your digital momentum...</div>
         
         <div class="grid">
             <div class="card">
@@ -335,208 +444,443 @@
                         <th>Avg Session</th>
                     </tr>
                 </thead>
-                <tbody id="tableBody"></tbody>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 32px;">Loading metrics...</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        Chart.defaults.color = '#94A3BB'; // Slate Gray
-        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
-        Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+        // ----------------------------------------------------
+        // 1. Dashboard API Module
+        // ----------------------------------------------------
+        const DashboardAPI = {
+            async fetchLogs() {
+                const origin = window.location.origin;
+                // Gracefully fallback to local dev server if dashboard is opened locally
+                const apiHost = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : origin;
+                const response = await fetch(`${apiHost}/api/log`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return await response.json();
+            }
+        };
 
-        let barChartInstance = null;
-        let lineChartInstance = null;
-
-        async function loadData() {
-            try {
-                const res = await fetch('http://localhost:8000/api/log');
-                const logs = await res.json();
+        // ----------------------------------------------------
+        // 2. Data Processor Module
+        // ----------------------------------------------------
+        const DataProcessor = {
+            process(logs) {
+                const boredomMoods = { Better: 0, Same: 0, Worse: 0 };
+                const studyMoods = { Better: 0, Same: 0, Worse: 0 };
+                const dailyMoodScores = {};
+                const siteStats = {};
                 
-                // Filter logs to only include tracking data from YouTube and Instagram
-                const trackedLogs = logs.filter(log => {
-                    if (!log.platform) return false;
-                    const p = log.platform.toLowerCase();
-                    return p.includes("youtube") || p.includes("instagram");
+                logs.forEach(log => {
+                    const et = log.event_type;
+                    const plat = log.platform ? log.platform.replace("www.", "") : "";
+                    const reason = log.reason || "";
+                    const timestamp = log.timestamp || "";
+                    const dateStr = timestamp ? timestamp.split("T")[0] : "";
+                    
+                    if (et === "MOOD_LOGGED") {
+                        const parts = reason.split(":");
+                        const intent = parts[0] ? parts[0].toLowerCase().trim() : "";
+                        const rating = parts[1] ? parts[1].trim() : "";
+                        
+                        let score = 0;
+                        if (rating === "Better") score = 1.0;
+                        else if (rating === "Same") score = 0.0;
+                        else if (rating === "Worse") score = -1.0;
+                        
+                        if (rating === "Better" || rating === "Same" || rating === "Worse") {
+                            if (intent === "boredom") boredomMoods[rating]++;
+                            else if (intent === "study") studyMoods[rating]++;
+                        }
+                        
+                        if (dateStr && (rating === "Better" || rating === "Same" || rating === "Worse")) {
+                            if (!dailyMoodScores[dateStr]) {
+                                dailyMoodScores[dateStr] = { sum: 0, count: 0 };
+                            }
+                            dailyMoodScores[dateStr].sum += score;
+                            dailyMoodScores[dateStr].count++;
+                        }
+                        
+                        if (plat && rating === "Worse") {
+                            if (!siteStats[plat]) {
+                                siteStats[plat] = { worse_count: 0, total_duration_secs: 0, session_count: 0 };
+                            }
+                            siteStats[plat].worse_count++;
+                        }
+                    }
+                    
+                    if (et === "SESSION_ENDED") {
+                        const parts = reason.split(":");
+                        const durationSecs = parseInt(parts[1], 10);
+                        
+                        if (plat && !isNaN(durationSecs)) {
+                            if (!siteStats[plat]) {
+                                siteStats[plat] = { worse_count: 0, total_duration_secs: 0, session_count: 0 };
+                            }
+                            siteStats[plat].total_duration_secs += durationSecs;
+                            siteStats[plat].session_count++;
+                        }
+                    }
                 });
                 
-                // Filter specifically for intent-logged sessions
-                const intentLogs = trackedLogs.filter(log => log.event_type === 'INTENT_LOGGED');
-                
-                // Group by Study vs Boredom reasons
-                const boredomLogs = intentLogs.filter(log => log.reason === 'Boredom');
-                const studyLogs = intentLogs.filter(log => log.reason === 'Study');
-                
-                const boredomCount = boredomLogs.length;
-                const studyCount = studyLogs.length;
-                
-                // Calculate mood distribution client-side:
-                // Boredom logs: 10% Better, 30% Same, 60% Worse
-                const b_better = Math.floor(boredomCount * 0.1);
-                const b_same = Math.floor(boredomCount * 0.3);
-                const b_worse = boredomCount - b_better - b_same;
-                
-                // Study logs: 70% Better, 20% Same, 10% Worse
-                const s_better = Math.floor(studyCount * 0.7);
-                const s_same = Math.floor(studyCount * 0.2);
-                const s_worse = studyCount - s_better - s_same;
-                
-                const totalDataPoints = boredomCount + studyCount;
-                
-                // Dynamic correlation insight
-                let correlationText = "";
-                if (totalDataPoints < 5) {
-                    correlationText = "Need more data to find mood-usage correlations.";
-                } else if (boredomCount > studyCount * 1.2) {
-                    correlationText = "Frequent boredom loops detected. Mindful friction is actively helping you pause.";
-                } else if (studyCount > boredomCount * 1.2) {
-                    correlationText = "Excellent focus balance! Productive sessions are dominating your daily patterns.";
-                } else {
-                    correlationText = "Your digital habits are balanced. Stay intentional when entering social sites.";
+                return {
+                    boredomMoods,
+                    studyMoods,
+                    dailyMoodScores,
+                    siteStats
+                };
+            },
+            
+            get7DayDateRange() {
+                const sortedDates = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    sortedDates.push(d.toISOString().split("T")[0]);
+                }
+                return sortedDates;
+            },
+            
+            generateDailyMoodList(dailyMoodScores, sortedDates) {
+                return sortedDates.map(date => {
+                    const dataObj = dailyMoodScores[date];
+                    const score = dataObj && dataObj.count > 0 ? (dataObj.sum / dataObj.count) : 0;
+                    return {
+                        date: date, // Keep full YYYY-MM-DD date strings on X-axis matching mockup
+                        score: parseFloat(score.toFixed(2))
+                    };
+                });
+            },
+            
+            generateSortedSites(siteStats) {
+                return Object.keys(siteStats).map(site => {
+                    const stats = siteStats[site];
+                    const avgSecs = stats.session_count > 0 ? (stats.total_duration_secs / stats.session_count) : 0;
+                    return {
+                        site: site,
+                        worse_count: stats.worse_count,
+                        avg_sec: avgSecs
+                    };
+                }).sort((x, y) => y.worse_count - x.worse_count);
+            },
+            
+            generateCorrelationMessage(b, s) {
+                const totalMoodLogs = b.Better + b.Same + b.Worse + s.Better + s.Same + s.Worse;
+                if (totalMoodLogs < 5) {
+                    return "System is tracking behavior. Need more data to evaluate digital intent correlations.";
                 }
                 
-                document.getElementById('correlationText').textContent = correlationText;
+                const boredomWorseRatio = b.Worse / Math.max(1, b.Better + b.Same + b.Worse);
+                const studyBetterRatio = s.Better / Math.max(1, s.Better + s.Same + s.Worse);
                 
-                // Update Boredom vs Study Bar Chart
-                if (barChartInstance) barChartInstance.destroy();
-                barChartInstance = new Chart(document.getElementById('barChart'), {
+                if (boredomWorseRatio > 0.5 && studyBetterRatio > 0.6) {
+                    return "💡 Mood Correlation Active: Doomscrolling leads to lower mood (Worse), while focused study sessions consistently build positive momentum (Better). Keep pushing!";
+                } else if (boredomWorseRatio > 0.4) {
+                    return "⚠️ High Boredom Friction Detected: Multiple boredom-driven sessions logged. We suggest taking a mindful 5-minute break.";
+                } else {
+                    return "🟢 Balanced Focus Patterns: Digital sessions are highly intentional. Teammate accountability is FOCUSED.";
+                }
+            }
+        };
+
+        // ----------------------------------------------------
+        // 3. Chart Manager Module
+        // ----------------------------------------------------
+        const ChartManager = {
+            barChartInstance: null,
+            lineChartInstance: null,
+            
+            initDefaults() {
+                Chart.defaults.color = '#94a3b8'; // Premium Slate Gray
+                Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+                Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+            },
+            
+            renderBarChart(canvasId, boredomMoods, studyMoods) {
+                if (this.barChartInstance) this.barChartInstance.destroy();
+                
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                
+                // High-Contrast bright red and green gradients
+                const redGrad = ctx.createLinearGradient(0, 0, 0, 360);
+                redGrad.addColorStop(0, '#ff3b30'); // Vibrant iOS Crimson
+                redGrad.addColorStop(1, '#ff453a');
+                
+                const greenGrad = ctx.createLinearGradient(0, 0, 0, 360);
+                greenGrad.addColorStop(0, '#30d158'); // Vibrant iOS Green
+                greenGrad.addColorStop(1, '#34c759');
+                
+                this.barChartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: ['Better', 'Same', 'Worse'],
                         datasets: [
-                            { label: 'Boredom', data: [b_better, b_same, b_worse], backgroundColor: '#EF4444', borderRadius: 6 }, // Crimson Pulse
-                            { label: 'Study', data: [s_better, s_same, s_worse], backgroundColor: '#10B981', borderRadius: 6 } // Emerald Glow
+                            { 
+                                label: 'Boredom / Habit', 
+                                data: [boredomMoods.Better, boredomMoods.Same, boredomMoods.Worse], 
+                                backgroundColor: redGrad, 
+                                borderRadius: 8,
+                                borderWidth: 0,
+                                hoverBackgroundColor: '#ff3b30'
+                            },
+                            { 
+                                label: 'Study / Work', 
+                                data: [studyMoods.Better, studyMoods.Same, studyMoods.Worse], 
+                                backgroundColor: greenGrad, 
+                                borderRadius: 8,
+                                borderWidth: 0,
+                                hoverBackgroundColor: '#30d158'
+                            }
                         ]
                     },
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false,
-                        plugins: { legend: { labels: { font: { weight: 600 } } } }
+                        plugins: { 
+                            legend: { 
+                                position: 'top',
+                                labels: { 
+                                    font: { weight: 600, size: 12 },
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    padding: 20
+                                } 
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(13, 17, 28, 0.95)',
+                                titleColor: '#fff',
+                                bodyColor: '#cbd5e1',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                padding: 12,
+                                cornerRadius: 12
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255, 255, 255, 0.04)' }
+                            }
+                        }
                     }
                 });
+            },
+            
+            renderLineChart(canvasId, dailyMoodList) {
+                if (this.lineChartInstance) this.lineChartInstance.destroy();
                 
-                // Calculate 7-Day Mood Score dynamically
-                const daily_mood = [];
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    
-                    // Format: YYYY-MM-DD
-                    const date_str = d.toISOString().split('T')[0];
-                    
-                    // Filter logs on this date
-                    const day_intent_logs = intentLogs.filter(log => {
-                        return log.timestamp && log.timestamp.startsWith(date_str);
-                    });
-                    
-                    const day_study = day_intent_logs.filter(log => log.reason === 'Study').length;
-                    const day_boredom = day_intent_logs.filter(log => log.reason === 'Boredom').length;
-                    
-                    const day_total = day_study + day_boredom;
-                    
-                    // Generate a gorgeous sinusoidal wave baseline oscillating between -0.7 and 0.7
-                    const index = 6 - i;
-                    let score = 0.7 * Math.sin(index * (2 * Math.PI / 6));
-                    
-                    // If we have actual logs, blend them with the sinusoidal pattern
-                    if (day_total > 0) {
-                        const real_score = (day_study - day_boredom) / day_total;
-                        score = 0.5 * score + 0.5 * real_score;
-                    }
-                    
-                    daily_mood.push({
-                        date: date_str,
-                        score: Math.round(score * 100) / 100
-                    });
-                }
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                const violetGrad = ctx.createLinearGradient(0, 0, 0, 360);
+                violetGrad.addColorStop(0, 'rgba(99, 102, 241, 0.45)');
+                violetGrad.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
                 
-                // Update 7-Day Line Chart
-                if (lineChartInstance) lineChartInstance.destroy();
-                lineChartInstance = new Chart(document.getElementById('lineChart'), {
+                this.lineChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: daily_mood.map(d => d.date),
+                        labels: dailyMoodList.map(d => d.date),
                         datasets: [{
-                            label: 'Score (-1 to 1)',
-                            data: daily_mood.map(d => d.score),
-                            borderColor: '#6366f1', // Electric Violet
-                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                            label: 'Focus Mood Index',
+                            data: dailyMoodList.map(d => d.score),
+                            borderColor: '#818cf8', // Electric Violet
+                            borderWidth: 4, // Bold professional line width
+                            backgroundColor: violetGrad,
                             fill: true,
-                            tension: 0.4
+                            tension: 0.4,
+                            pointBackgroundColor: '#818cf8',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
                         }]
                     },
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false,
-                        scales: { y: { min: -1, max: 1 } }
-                    }
-                });
-                
-                // Group Top Sites by Worse Count (Boredom logs)
-                const siteGroups = {};
-                intentLogs.forEach(log => {
-                    if (log.reason === 'Boredom') {
-                        let site = log.platform.toLowerCase().replace("www.", "");
-                        if (!siteGroups[site]) {
-                            siteGroups[site] = { site: site, worse_count: 0, avg_sec: 0.0 };
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    font: { weight: 600 },
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(13, 17, 28, 0.95)',
+                                padding: 12,
+                                cornerRadius: 12,
+                                borderWidth: 1,
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                callbacks: {
+                                    label: function(context) {
+                                        let val = context.raw;
+                                        let moodLabel = 'Same';
+                                        if (val > 0.1) moodLabel = 'Better';
+                                        if (val < -0.1) moodLabel = 'Worse';
+                                        return `Mood Index: ${val} (${moodLabel})`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: { 
+                                min: -1.0, 
+                                max: 1.0,
+                                ticks: {
+                                    stepSize: 0.5,
+                                    callback: function(value) {
+                                        if (value === 1.0) return 'Better (+1.0)';
+                                        if (value === 0.0) return 'Same (0.0)';
+                                        if (value === -1.0) return 'Worse (-1.0)';
+                                        return value.toFixed(1);
+                                    },
+                                    font: {
+                                        weight: 600
+                                    }
+                                },
+                                grid: { color: 'rgba(255, 255, 255, 0.04)' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { display: false } // Completely removes date strings from the x-axis visual timeline
+                            }
                         }
-                        siteGroups[site].worse_count += 1;
                     }
                 });
-                
-                const topSites = Object.values(siteGroups);
-                
-                // Fill placeholders if youtube or instagram is missing for visual correctness
-                const activeSites = topSites.map(s => s.site);
-                if (!activeSites.includes("youtube.com")) {
-                    topSites.push({ site: "youtube.com", worse_count: 0, avg_sec: 600.0 });
-                }
-                if (!activeSites.includes("instagram.com")) {
-                    topSites.push({ site: "instagram.com", worse_count: 0, avg_sec: 480.0 });
-                }
-                
-                // Update default average session durations for display
-                topSites.forEach(s => {
-                    if (s.worse_count > 0) {
-                        s.avg_sec = s.site.includes("youtube") ? 600.0 : 480.0;
-                    }
-                });
-                
-                // Sort top sites by worse count descending
-                topSites.sort((a, b) => b.worse_count - a.worse_count);
-                
+            }
+        };
+
+        // ----------------------------------------------------
+        // 4. UI Manager Module
+        // ----------------------------------------------------
+        const UIManager = {
+            updateCorrelation(text) {
+                document.getElementById('correlationText').textContent = text;
+            },
+            
+            updateTable(sortedSites) {
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
-                topSites.slice(0, 3).forEach(site => {
+                
+                if (sortedSites.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 24px;">No distracting session logs available yet.</td></tr>';
+                    return;
+                }
+                
+                sortedSites.slice(0, 3).forEach(siteObj => {
                     const tr = document.createElement('tr');
-                    const sec = Math.round(site.avg_sec || 0);
+                    const sec = Math.round(siteObj.avg_sec || 0);
+                    const mins = Math.floor(sec / 60);
+                    const secs = sec % 60;
+                    const durationStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+                    
+                    // Premium badging
+                    const siteBadge = `<span style="font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px;">🌐</span> ${siteObj.site}
+                    </span>`;
+                    
+                    const worseBadge = `<span style="background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.2); padding: 5px 14px; border-radius: 20px; color: #ff3b30; font-weight: 700; font-size: 0.85rem; box-shadow: 0 0 10px rgba(255, 59, 48, 0.15);">
+                        ${siteObj.worse_count} Worse
+                    </span>`;
+                    
+                    const durationBadge = `<span style="color: var(--text-muted); font-weight: 500;">
+                        ⏱️ ${durationStr}
+                    </span>`;
+                    
                     tr.innerHTML = `
-                        <td>${site.site}</td>
-                        <td>${site.worse_count}</td>
-                        <td>${Math.floor(sec / 60)}m ${sec % 60}s</td>
+                        <td>${siteBadge}</td>
+                        <td>${worseBadge}</td>
+                        <td>${durationBadge}</td>
                     `;
                     tbody.appendChild(tr);
                 });
+            },
+            
+            updateLastUpdated() {
+                const element = document.getElementById('syncStatus');
+                if (element) {
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    element.innerHTML = `<span style="display:inline-block; width:8px; height:8px; background:#30d158; border-radius:50%; box-shadow:0 0 8px #30d158; margin-right:8px; animation: pulse 2s infinite;"></span>Live Sync Active (Updated at ${timeStr})`;
+                }
+            },
+            
+            setLoadingState(isLoading) {
+                const refreshBtn = document.getElementById('refreshBtn');
+                if (refreshBtn) {
+                    if (isLoading) {
+                        refreshBtn.classList.add('spinning');
+                        refreshBtn.disabled = true;
+                    } else {
+                        refreshBtn.classList.remove('spinning');
+                        refreshBtn.disabled = false;
+                    }
+                }
+            }
+        };
+
+        // Initialize Chart.js global styling defaults
+        ChartManager.initDefaults();
+
+        // ----------------------------------------------------
+        // Orchestrator: Load Data & Redraw Page
+        // ----------------------------------------------------
+        async function loadData(silent = false) {
+            if (!silent) UIManager.setLoadingState(true);
+            try {
+                // 1. Fetch raw logs from database SQLite endpoint
+                const logs = await DashboardAPI.fetchLogs();
+                
+                // 2. Parse and structure the log data
+                const processed = DataProcessor.process(logs);
+                
+                // 3. Render Boredom vs Study Mood (Bar Chart)
+                ChartManager.renderBarChart('barChart', processed.boredomMoods, processed.studyMoods);
+                
+                // 4. Render 7-Day Mood Score (Line Chart)
+                const dateRange = DataProcessor.get7DayDateRange();
+                const dailyMoodList = DataProcessor.generateDailyMoodList(processed.dailyMoodScores, dateRange);
+                ChartManager.renderLineChart('lineChart', dailyMoodList);
+                
+                // 5. Render Top Distracting Sites Leaderboard
+                const sortedSites = DataProcessor.generateSortedSites(processed.siteStats);
+                UIManager.updateTable(sortedSites);
+                
+                // 6. Formulate and update active AI insights
+                const correlationMessage = DataProcessor.generateCorrelationMessage(processed.boredomMoods, processed.studyMoods);
+                UIManager.updateCorrelation(correlationMessage);
+                
+                // 7. Update visual synchronization states
+                UIManager.updateLastUpdated();
             } catch (e) {
-                document.getElementById('correlationText').textContent = "Failed to load data.";
-                console.error(e);
+                console.error("Dashboard synchronization error:", e);
+                UIManager.updateCorrelation("Failed to synchronize dynamic backend analytics logs.");
+            } finally {
+                if (!silent) {
+                    // Ensure a nice smooth completion transition
+                    setTimeout(() => {
+                        UIManager.setLoadingState(false);
+                    }, 300);
+                }
             }
         }
+
+        // Run immediately on page load
+        loadData(false);
         
-        async function triggerManualRefresh() {
-            const btn = document.querySelector('.btn-refresh');
-            const svg = btn.querySelector('svg');
-            svg.classList.add('spin');
-            btn.disabled = true;
-            await loadData();
-            setTimeout(() => {
-                svg.classList.remove('spin');
-                btn.disabled = false;
-            }, 600);
-        }
-        
-        loadData();
-        setInterval(loadData, 5000); // Poll every 5 seconds for a true "live" feel
+        // Poll silently every 3 seconds for active, real-time live database updates
+        setInterval(() => loadData(true), 3000);
     </script>
 </body>
 </html>

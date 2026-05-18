@@ -24,19 +24,22 @@ def init_db():
         pass # Column already exists
     conn.commit()
     conn.close()
+    
+    # Seed rich metrics for the dashboard charts
+    seed_sample_data()
 
-def log_event(event_type: str, platform: str):
+def log_event(event_type: str, platform: str, reason: str = None):
     """
     Logs an event to the database.
-    Example event_types: 'BLOCKED_ATTEMPT', 'SUCCESSFUL_UNLOCK'
+    Example event_types: 'BLOCKED_ATTEMPT', 'SUCCESSFUL_UNLOCK', 'MOOD_LOGGED', 'SESSION_ENDED'
     """
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     # Use UTC for consistent timestamping
     timestamp = datetime.now(timezone.utc).isoformat()
     cursor.execute(
-        "INSERT INTO focus_logs (timestamp, event_type, platform) VALUES (?, ?, ?)",
-        (timestamp, event_type, platform)
+        "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+        (timestamp, event_type, platform, reason)
     )
     conn.commit()
     conn.close()
@@ -160,112 +163,11 @@ def get_stats(platform: str):
         **detailed
     }
 
-def get_mood_statistics():
+def get_all_logs():
+    """Retrieves all logs from the database, newest first."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    
-    # 1. Fetch count of Boredom and Study logs
-    cursor.execute("SELECT COUNT(*) FROM focus_logs WHERE reason = 'Boredom'")
-    boredom_count = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM focus_logs WHERE reason = 'Study'")
-    study_count = cursor.fetchone()[0]
-    
-    # Generate boredom moods distribution
-    b_better = int(boredom_count * 0.1)
-    b_same = int(boredom_count * 0.3)
-    b_worse = boredom_count - b_better - b_same
-    
-    # Generate study moods distribution
-    s_better = int(study_count * 0.7)
-    s_same = int(study_count * 0.2)
-    s_worse = study_count - s_better - s_same
-    
-    # 2. Daily mood scores for last 7 days
-    daily_mood = []
-    now = datetime.now(timezone.utc)
-    for i in range(6, -1, -1):
-        target_day = now - timedelta(days=i)
-        date_str = target_day.strftime("%Y-%m-%d")
-        day_start = target_day.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-        day_end = target_day.replace(hour=23, minute=59, second=59, microsecond=999999).isoformat()
-        
-        cursor.execute(
-            "SELECT COUNT(*) FROM focus_logs WHERE reason = 'Study' AND timestamp BETWEEN ? AND ?",
-            (day_start, day_end)
-        )
-        day_study = cursor.fetchone()[0]
-        
-        cursor.execute(
-            "SELECT COUNT(*) FROM focus_logs WHERE reason = 'Boredom' AND timestamp BETWEEN ? AND ?",
-            (day_start, day_end)
-        )
-        day_boredom = cursor.fetchone()[0]
-        
-        # Calculate score between -1 and 1
-        total = day_study + day_boredom
-        if total > 0:
-            score = (day_study - day_boredom) / total
-        else:
-            score = 0.0
-            
-        daily_mood.append({"date": date_str, "score": round(score, 2)})
-        
-    # 3. Top sites by Worse Count (Boredom visits)
-    cursor.execute("""
-        SELECT platform, COUNT(*) as worse_count 
-        FROM focus_logs 
-        WHERE reason = 'Boredom' 
-        GROUP BY platform 
-        ORDER BY worse_count DESC 
-        LIMIT 5
-    """)
-    top_sites_rows = cursor.fetchall()
-    top_sites = []
-    for platform, count in top_sites_rows:
-        # clean up platform name
-        site_name = platform.replace("www.", "")
-        # average session duration default simulation (e.g. 10 mins = 600 secs)
-        avg_sec = 600.0 if "youtube" in site_name else 480.0
-        top_sites.append({
-            "site": site_name,
-            "worse_count": count,
-            "avg_sec": avg_sec
-        })
-        
-    # If top_sites is empty, add defaults for visual correctness
-    if not top_sites:
-        top_sites = [
-            {"site": "youtube.com", "worse_count": 0, "avg_sec": 0.0},
-            {"site": "instagram.com", "worse_count": 0, "avg_sec": 0.0}
-        ]
-        
-    # 4. Correlation text
-    total_data_points = boredom_count + study_count
-    if total_data_points < 5:
-        correlation_text = "Need more data to find mood-usage correlations."
-    elif boredom_count > study_count * 1.2:
-        correlation_text = "Frequent boredom loops detected. Mindful friction is actively helping you pause."
-    elif study_count > boredom_count * 1.2:
-        correlation_text = "Excellent focus balance! Productive sessions are dominating your daily patterns."
-    else:
-        correlation_text = "Your digital habits are balanced. Stay intentional when entering social sites."
-        
-    conn.close()
-    
-    return {
-        "boredom_moods": {"Better": b_better, "Same": b_same, "Worse": b_worse},
-        "study_moods": {"Better": s_better, "Same": s_same, "Worse": s_worse},
-        "correlation_text": correlation_text,
-        "daily_mood": daily_mood,
-        "top_sites": top_sites
-    }
-
-def get_raw_logs():
-    """Retrieves all raw logs from the focus_logs table ordered by timestamp."""
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, timestamp, event_type, platform, reason FROM focus_logs ORDER BY timestamp DESC")
+    cursor.execute("SELECT id, timestamp, event_type, platform, reason FROM focus_logs ORDER BY id DESC")
     rows = cursor.fetchall()
     conn.close()
     
@@ -279,6 +181,80 @@ def get_raw_logs():
             "reason": row[4]
         })
     return logs
+
+def seed_sample_data():
+    """Seeds the database with realistic logs if no mood logs exist."""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    
+    # Check if we already have seeded or logged mood data
+    try:
+        cursor.execute("SELECT COUNT(*) FROM focus_logs WHERE event_type = 'MOOD_LOGGED'")
+        count = cursor.fetchone()[0]
+    except sqlite3.OperationalError:
+        # If table focus_logs doesn't exist yet, we'll return and let init_db finish
+        conn.close()
+        return
+
+    if count > 0:
+        conn.close()
+        return
+
+    print("Seeding SQLite database with high-fidelity sample metrics for dashboard...")
+    import random
+    
+    now = datetime.now(timezone.utc)
+    platforms = ["www.youtube.com", "www.instagram.com"]
+    intents = ["study", "boredom"]
+    
+    for day_offset in range(7, -1, -1):
+        day_date = now - timedelta(days=day_offset)
+        num_sessions = random.randint(3, 6)
+        for _ in range(num_sessions):
+            platform = random.choice(platforms)
+            intent = random.choice(intents)
+            
+            hour = random.randint(8, 22)
+            minute = random.randint(0, 59)
+            session_time = day_date.replace(hour=hour, minute=minute).isoformat()
+            
+            # 1. Intent Logged
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (session_time, "INTENT_LOGGED", platform, intent)
+            )
+            
+            # 2. Successful Unlock
+            unlock_time = (day_date.replace(hour=hour, minute=minute) + timedelta(seconds=2)).isoformat()
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (unlock_time, "SUCCESSFUL_UNLOCK", platform, None)
+            )
+            
+            # 3. Session End & Duration (in seconds, e.g. 10m to 50m)
+            duration_mins = random.randint(10, 22) if intent == "boredom" else random.randint(25, 55)
+            duration_secs = duration_mins * 60
+            end_time = (day_date.replace(hour=hour, minute=minute) + timedelta(minutes=duration_mins)).isoformat()
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (end_time, "SESSION_ENDED", platform, f"{intent}:{duration_secs}")
+            )
+            
+            # 4. Mood Logged
+            if intent == "study":
+                mood = random.choices(["Better", "Same", "Worse"], weights=[75, 15, 10])[0]
+            else:
+                mood = random.choices(["Better", "Same", "Worse"], weights=[10, 25, 65])[0]
+                
+            mood_time = (day_date.replace(hour=hour, minute=minute) + timedelta(minutes=duration_mins, seconds=5)).isoformat()
+            cursor.execute(
+                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
+                (mood_time, "MOOD_LOGGED", platform, f"{intent}:{mood}")
+            )
+            
+    conn.commit()
+    conn.close()
+    print("Database seeding completed.")
 
 # Self-initialize on import so the DB file is automatically created on startup
 init_db()

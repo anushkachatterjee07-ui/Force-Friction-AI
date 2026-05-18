@@ -83,21 +83,22 @@ async def unlock(minutes: int = 5):
 class LogRequest(BaseModel):
     event_type: str
     platform: str
+    reason: str = None
 
 @app.post("/api/log")
 async def log_activity(request: LogRequest):
     """
     Log an event like a blocked attempt.
     """
-    database.log_event(request.event_type, request.platform)
+    database.log_event(request.event_type, request.platform, request.reason)
     return {"success": True, "message": "Event logged successfully"}
 
 @app.get("/api/log")
 async def get_raw_logs():
     """
-    Retrieve raw session logs for dynamic dashboard calculations.
+    Retrieve raw session log analytics for the dashboard.
     """
-    return database.get_raw_logs()
+    return database.get_all_logs()
 
 @app.get("/api/analytics")
 async def get_analytics():
@@ -229,7 +230,16 @@ async def get_stats_endpoint(site: str):
 async def session_end_endpoint(request: SessionEndRequest):
     """
     Evaluate the session and optionally return a reflection message and a mood question.
+    Also logs the session end event to SQLite.
     """
+    # Dynamically log the SESSION_ENDED event in SQLite
+    duration_secs = request.duration_mins * 60
+    database.log_event(
+        event_type="SESSION_ENDED",
+        platform=request.site,
+        reason=f"{request.intent}:{duration_secs}"
+    )
+    
     message = reflect_on_session(
         site=request.site,
         reason=request.reason,
