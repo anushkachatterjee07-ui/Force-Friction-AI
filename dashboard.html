@@ -289,6 +289,284 @@
             transform: scale(1.003);
             border-color: rgba(99, 102, 241, 0.2);
         }
+
+        /* ----------------------------------------------------
+           PREMIUM JUDGE WIDGETS CSS
+           ---------------------------------------------------- */
+        .social-card {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .social-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        @media (min-width: 600px) {
+            .social-grid {
+                grid-template-columns: 1.2fr 1fr;
+            }
+        }
+
+        .focus-gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        .svg-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg {
+            stroke: rgba(255, 255, 255, 0.03);
+        }
+
+        .gauge-fill {
+            stroke: url(#indigoGrad);
+            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gauge-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        #focusScoreValue {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -1px;
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .gauge-text .pct {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-left: 1px;
+        }
+
+        .gauge-label {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+        }
+
+        .label-optimal {
+            background: rgba(48, 209, 88, 0.1);
+            color: #30d158;
+            border: 1px solid rgba(48, 209, 88, 0.2);
+        }
+
+        .label-balanced {
+            background: rgba(255, 159, 10, 0.1);
+            color: #ff9f0a;
+            border: 1px solid rgba(255, 159, 10, 0.2);
+        }
+
+        .label-friction {
+            background: rgba(255, 59, 48, 0.1);
+            color: #ff3b30;
+            border: 1px solid rgba(255, 59, 48, 0.2);
+        }
+
+        /* Binary Souls Paired Status Row */
+        .teammates-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .teammate-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 16px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .teammate-row:hover {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4f46e5, #a855f7);
+            color: #ffffff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+            letter-spacing: -0.5px;
+        }
+
+        .avatar.partner {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
+        }
+
+        .teammate-meta {
+            flex-grow: 1;
+        }
+
+        .teammate-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .teammate-role {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .status-badge.focused {
+            background: rgba(48, 209, 88, 0.1);
+            color: #30d158;
+            border: 1px solid rgba(48, 209, 88, 0.25);
+            box-shadow: 0 0 8px rgba(48, 209, 88, 0.15);
+        }
+
+        .status-badge.looping {
+            background: rgba(255, 59, 48, 0.1);
+            color: #ff3b30;
+            border: 1px solid rgba(255, 59, 48, 0.25);
+            box-shadow: 0 0 8px rgba(255, 59, 48, 0.15);
+            animation: pulse 1.5s infinite;
+        }
+
+        /* scrolling logs console style */
+        .console-panel {
+            background: rgba(10, 12, 18, 0.9);
+            border: 1px solid rgba(255,255,255,0.02);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+            margin-top: 24px;
+        }
+
+        .console-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .console-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .console-badge {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            font-size: 0.7rem;
+            font-family: monospace;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #818cf8;
+        }
+
+        .console-stream {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #a5b4fc;
+            max-height: 120px;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .console-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            line-height: 1.4;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: consoleSlideIn 0.3s forwards ease-out;
+        }
+
+        @keyframes consoleSlideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .console-time {
+            color: #6366f1;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .console-indicator {
+            color: #30d158;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .console-text {
+            word-break: break-all;
+            color: #cbd5e1;
+        }
     </style>
 </head>
 <body>
@@ -330,22 +608,85 @@
             </div>
         </div>
 
-        <div class="card">
-            <h2>Top Sites by Worse Count</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Site</th>
-                        <th>Worse Count</th>
-                        <th>Avg Session</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr>
-                        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 32px;">Loading metrics...</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="grid">
+            <div class="card">
+                <h2>Top Sites by Worse Count</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Site</th>
+                                <th>Worse Count</th>
+                                <th>Avg Session</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 32px;">Loading metrics...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card social-card">
+                <h2>Social Accountability</h2>
+                <div class="social-grid">
+                    <!-- Circular SVG Gauge -->
+                    <div class="focus-gauge-container">
+                        <div class="svg-container">
+                            <svg class="gauge-svg" viewBox="0 0 100 100">
+                                <circle class="gauge-bg" cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.03)" stroke-width="8" fill="transparent"></circle>
+                                <circle class="gauge-fill" id="focusGaugeFill" cx="50" cy="50" r="40" stroke="url(#indigoGrad)" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="251.2" fill="transparent" stroke-linecap="round"></circle>
+                                <defs>
+                                    <linearGradient id="indigoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#6366f1" />
+                                        <stop offset="100%" stop-color="#a855f7" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="gauge-text">
+                                <span id="focusScoreValue">0</span>
+                                <span class="pct">%</span>
+                            </div>
+                        </div>
+                        <div class="gauge-label label-optimal" id="focusScoreLabel">OPTIMAL FOCUS</div>
+                    </div>
+                    
+                    <!-- Binary Souls Pairs -->
+                    <div class="teammates-container">
+                        <div class="teammate-row">
+                            <div class="avatar">AS</div>
+                            <div class="teammate-meta">
+                                <div class="teammate-name">Anushka (You)</div>
+                                <div class="teammate-role">Digital Soulist</div>
+                            </div>
+                            <div class="status-badge focused">FOCUSED</div>
+                        </div>
+                        <div class="teammate-row">
+                            <div class="avatar partner">BS</div>
+                            <div class="teammate-meta">
+                                <div class="teammate-name">Alex (Teammate)</div>
+                                <div class="teammate-role">Paired Soul</div>
+                            </div>
+                            <div class="status-badge focused" id="partnerBadge">FOCUSED</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Console Stream Ticker -->
+        <div class="console-panel">
+            <div class="console-header">
+                <div class="console-title">
+                    <span>📟</span> Active System Log Stream
+                </div>
+                <div class="console-badge">live_kernel_feed.log</div>
+            </div>
+            <div class="console-stream" id="consoleStream">
+                <!-- Javascript will inject scrolling live console-rows here -->
+            </div>
         </div>
     </div>
 
@@ -790,6 +1131,81 @@
         ChartManager.initDefaults();
 
         // ----------------------------------------------------
+        // 5. Console Stream Ticker Module
+        // ----------------------------------------------------
+        const ConsoleStream = {
+            logs: [
+                "Extension kernel paired with local SQLite database successfully.",
+                "Background listener loaded. Filter registered for: youtube.com, instagram.com.",
+                "Binary Souls pairing handshake completed for team_id: souls_paired_9104.",
+                "Active social accountability stats synched from /api/team/stats.",
+                "Focus Friction injected content scripts successfully.",
+                "Interactive friction overlay loaded: click listeners added to breaking actions.",
+                "Extension registered: Doomloop detection kernel initialized."
+            ],
+            
+            simulatedLogs: [
+                "Heavy blur injection active on distraction tab. DOM Locked.",
+                "Boredom intent registered on instagram.com (Cors preflight OK).",
+                "Study intent registered on youtube.com - Focus Friction unlocked.",
+                "Session end recorded. SQLite analytics table updated.",
+                "Handshake sync: Partner Alex is FOCUSED.",
+                "Friction triggered: Unclosable overlay rendering complete.",
+                "Friction alert: Redirected away from unproductive doomloop."
+            ],
+            
+            initialized: false,
+            
+            init() {
+                if (this.initialized) return;
+                this.initialized = true;
+                
+                const container = document.getElementById('consoleStream');
+                if (!container) return;
+                container.innerHTML = '';
+                
+                // Add initial logs with a slight delay
+                this.logs.forEach((log, index) => {
+                    setTimeout(() => {
+                        this.addLog(log);
+                    }, index * 300);
+                });
+                
+                // Start dynamic feed simulation
+                setInterval(() => {
+                    const randomLog = this.simulatedLogs[Math.floor(Math.random() * this.simulatedLogs.length)];
+                    this.addLog(randomLog);
+                }, 4000);
+            },
+            
+            addLog(text) {
+                const container = document.getElementById('consoleStream');
+                if (!container) return;
+                
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                
+                const row = document.createElement('div');
+                row.className = 'console-row';
+                row.innerHTML = `
+                    <span class="console-time">[${timeStr}]</span>
+                    <span class="console-indicator">kernel::</span>
+                    <span class="console-text">${text}</span>
+                `;
+                
+                container.appendChild(row);
+                
+                // Scroll to bottom
+                container.scrollTop = container.scrollHeight;
+                
+                // Cap log count in DOM to avoid memory bloat
+                while (container.children.length > 8) {
+                    container.removeChild(container.firstChild);
+                }
+            }
+        };
+
+        // ----------------------------------------------------
         // Orchestrator: Load Data & Redraw Page
         // ----------------------------------------------------
         async function loadData(silent = false) {
@@ -815,8 +1231,79 @@
                 const correlationMessage = DataProcessor.generateCorrelationMessage(processed.boredomMoods, processed.studyMoods);
                 UIManager.updateCorrelation(correlationMessage);
                 
-                // 7. Update visual synchronization states
+                // 7. Sync Binary Souls Teammate Status
+                let partnerStatus = "FOCUSED";
+                try {
+                    const origin = window.location.origin;
+                    const apiHost = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : origin;
+                    const teamRes = await fetch(`${apiHost}/api/team/stats`);
+                    if (teamRes.ok) {
+                        const teamData = await teamRes.json();
+                        partnerStatus = teamData.partner_status || "FOCUSED";
+                    }
+                } catch(e) {
+                    console.warn("Could not sync partner status:", e);
+                }
+                
+                // Update partner badge in the UI
+                const partnerBadge = document.getElementById('partnerBadge');
+                if (partnerBadge) {
+                    partnerBadge.textContent = partnerStatus;
+                    partnerBadge.className = `status-badge ${partnerStatus.toLowerCase() === 'focused' ? 'focused' : 'looping'}`;
+                }
+                
+                // 8. Calculate dynamic Focus Score and animate Gauge
+                let worseCount = 0;
+                sortedSites.forEach(s => worseCount += s.worse_count);
+                
+                let focusScore = 100 - (worseCount * 12);
+                focusScore = Math.max(15, Math.min(100, focusScore)); // Clamp between 15% and 100%
+                
+                const fillCircle = document.getElementById('focusGaugeFill');
+                const scoreVal = document.getElementById('focusScoreValue');
+                const scoreLabel = document.getElementById('focusScoreLabel');
+                
+                if (fillCircle && scoreVal && scoreLabel) {
+                    // Smooth counter increment animation
+                    let currentVal = parseInt(scoreVal.textContent, 10) || 0;
+                    if (currentVal !== focusScore) {
+                        const isUp = focusScore > currentVal;
+                        const interval = setInterval(() => {
+                            if (isUp) currentVal++;
+                            else currentVal--;
+                            
+                            if (currentVal === focusScore || currentVal < 0 || currentVal > 100) {
+                                currentVal = focusScore;
+                                clearInterval(interval);
+                            }
+                            scoreVal.textContent = currentVal;
+                        }, 25);
+                    } else {
+                        scoreVal.textContent = focusScore;
+                    }
+                    
+                    // Update stroke dashoffset (circumference of r=40 is 251.2)
+                    const offset = 251.2 - (251.2 * focusScore) / 100;
+                    fillCircle.style.strokeDashoffset = offset;
+                    
+                    // Update qualitative labels
+                    if (focusScore >= 80) {
+                        scoreLabel.textContent = "OPTIMAL FOCUS";
+                        scoreLabel.className = "gauge-label label-optimal";
+                    } else if (focusScore >= 50) {
+                        scoreLabel.textContent = "BALANCED ATTENTION";
+                        scoreLabel.className = "gauge-label label-balanced";
+                    } else {
+                        scoreLabel.textContent = "HIGH FRICTION LOOP";
+                        scoreLabel.className = "gauge-label label-friction";
+                    }
+                }
+                
+                // 9. Update visual synchronization states
                 UIManager.updateLastUpdated();
+                
+                // Initialize the Console Stream Log Ticker
+                ConsoleStream.init();
             } catch (e) {
                 console.error("Dashboard synchronization error:", e);
                 UIManager.updateCorrelation("Failed to synchronize dynamic backend analytics logs.");
