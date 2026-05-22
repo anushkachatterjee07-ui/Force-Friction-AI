@@ -495,6 +495,7 @@
             flex-direction: column;
             gap: 24px;
             position: relative;
+            overflow: visible;
         }
 
         .social-grid {
@@ -503,6 +504,30 @@
             gap: 24px;
             align-items: center;
             position: relative;
+            min-width: 0;
+            overflow: visible;
+        }
+
+        .focus-gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-width: 240px;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .avatar-panel,
+        .teammates-container {
+            z-index: 1;
         }
 
         @media (min-width: 600px) {
@@ -531,21 +556,7 @@
             z-index: 1;
         }
 
-        .focus-gauge-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.015);
-            border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .focus-gauge-container::after {
+.focus-gauge-container::after {
             content: '';
             position: absolute;
             inset: 0;
@@ -1367,7 +1378,7 @@
                         labels: liveMoodFeed.map(d => d.label),
                         datasets: [
                             {
-                                label: 'Hologram Terrain',
+                                label: 'Focus Tracking Stream',
                                 data: liveMoodFeed.map(d => d.score),
                                 borderColor: 'rgba(129, 140, 248, 0.20)',
                                 borderWidth: 18,
@@ -1402,7 +1413,7 @@
                                 }
                             },
                             {
-                                label: 'Holo Refraction',
+                                label: 'Attention Baseline',
                                 data: liveMoodFeed.map(d => d.score * 0.3 - 0.2),
                                 borderColor: 'rgba(164, 202, 254, 0.12)',
                                 borderWidth: 2,
