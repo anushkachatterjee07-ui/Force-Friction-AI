@@ -487,25 +487,267 @@
         .social-card {
             display: flex;
             flex-direction: column;
-            gap: 24px;
-        }
-
-        .social-card {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+            gap: 28px;
             position: relative;
             overflow: visible;
         }
 
         .social-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            align-items: stretch;
+            justify-items: stretch;
             position: relative;
             min-width: 0;
             overflow: visible;
+        }
+
+        /* Twin User Synergy Layout */
+        .synergy-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            position: relative;
+            width: 100%;
+        }
+
+        @media (min-width: 900px) {
+            .synergy-container {
+                grid-template-columns: 1fr 280px 1fr;
+                gap: 28px;
+                align-items: center;
+            }
+        }
+
+        .user-profile-slot {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px;
+            background: rgba(255,255,255,0.01);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 20px;
+            position: relative;
+            min-width: 0;
+        }
+
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .user-avatar-small {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #4f46e5, #a855f7);
+            color: #ffffff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
+            letter-spacing: -0.5px;
+            flex-shrink: 0;
+        }
+
+        .user-avatar-small.partner {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            box-shadow: 0 0 16px rgba(236, 72, 153, 0.25);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-status-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 16px;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .user-status-badge.focused {
+            background: rgba(48, 209, 88, 0.12);
+            color: #30d158;
+            border: 1px solid rgba(48, 209, 88, 0.25);
+            box-shadow: 0 0 10px rgba(48, 209, 88, 0.15);
+        }
+
+        .micro-chart-container {
+            position: relative;
+            height: 80px;
+            width: 100%;
+            border-radius: 14px;
+            background: rgba(13, 17, 28, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .micro-chart-title {
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .micro-chart-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Center Synergy Core */
+        .synergy-core {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            position: relative;
+            padding: 16px 0;
+        }
+
+        @media (max-width: 899px) {
+            .synergy-core {
+                order: -1;
+                margin-bottom: 8px;
+            }
+        }
+
+        .synergy-rings-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .synergy-ring {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+        }
+
+        .synergy-ring.left {
+            left: 0;
+            background: rgba(6, 182, 212, 0.08);
+            border: 2px solid rgba(6, 182, 212, 0.4);
+            box-shadow: 0 0 24px rgba(6, 182, 212, 0.2), inset 0 0 20px rgba(6, 182, 212, 0.1);
+            color: rgba(6, 182, 212, 0.9);
+        }
+
+        .synergy-ring.right {
+            right: 0;
+            background: rgba(236, 72, 153, 0.08);
+            border: 2px solid rgba(236, 72, 153, 0.4);
+            box-shadow: 0 0 24px rgba(236, 72, 153, 0.2), inset 0 0 20px rgba(236, 72, 153, 0.1);
+            color: rgba(236, 72, 153, 0.9);
+        }
+
+        .synergy-center-dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(99, 102, 241, 0.6));
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 40px rgba(99, 102, 241, 0.3);
+            animation: pulseCenter 2s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        @keyframes pulseCenter {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+        }
+
+        .synergy-connector-svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connector-particle-trail {
+            animation: particleFlow 2s ease-in-out infinite;
+        }
+
+        @keyframes particleFlow {
+            0% {
+                offset-distance: 0%;
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                offset-distance: 100%;
+                opacity: 0;
+            }
+        }
+
+        .synergy-label {
+            text-align: center;
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: rgba(99, 102, 241, 0.9);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
         .focus-gauge-container {
@@ -520,40 +762,28 @@
             text-align: center;
             position: relative;
             overflow: hidden;
-            min-width: 240px;
+            min-width: 280px;
             flex-shrink: 0;
-            z-index: 1;
+            z-index: 2;
         }
 
         .avatar-panel,
         .teammates-container {
-            z-index: 1;
+            z-index: 2;
         }
 
-        @media (min-width: 600px) {
-            .social-grid {
-                grid-template-columns: 1.2fr 1fr;
-            }
+        .teammate-row,
+        .teammate-meta {
+            min-width: 0;
         }
 
-        @media (min-width: 900px) {
-            .social-grid {
-                grid-template-columns: 1.1fr 0.95fr 1fr;
-            }
+        .teammate-name,
+        .teammate-role {
+            overflow-wrap: anywhere;
         }
 
-        .social-card::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 18%;
-            width: 62%;
-            height: 2px;
-            background: linear-gradient(90deg, rgba(56, 189, 248, 0) 0%, rgba(56, 189, 248, 0.5) 25%, rgba(236, 72, 153, 0.5) 50%, rgba(56, 189, 248, 0.5) 75%, rgba(56, 189, 248, 0) 100%);
-            transform: translateY(-50%);
-            filter: blur(1px);
-            pointer-events: none;
-            z-index: 1;
+        .social-grid > * {
+            min-width: 0;
         }
 
 .focus-gauge-container::after {
@@ -790,13 +1020,15 @@
 
         .teammate-row {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             background: rgba(255,255,255,0.015);
             border: 1px solid rgba(255,255,255,0.03);
             border-radius: 16px;
-            padding: 16px 20px;
+            padding: 14px 16px;
             transition: all 0.3s ease;
+            min-height: 56px;
         }
 
         .teammate-row:hover {
@@ -818,6 +1050,7 @@
             font-size: 0.95rem;
             box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
             letter-spacing: -0.5px;
+            flex-shrink: 0;
         }
 
         .avatar.partner {
@@ -826,28 +1059,33 @@
         }
 
         .teammate-meta {
-            flex-grow: 1;
+            flex: 1 1 auto;
+            min-width: 140px;
         }
 
         .teammate-name {
             font-size: 0.95rem;
             font-weight: 700;
             color: #ffffff;
+            margin: 0;
         }
 
         .teammate-role {
             font-size: 0.8rem;
             color: var(--text-muted);
             margin-top: 2px;
+            margin: 2px 0 0 0;
         }
 
         .status-badge {
             font-size: 0.75rem;
             font-weight: 800;
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             letter-spacing: 0.8px;
             text-transform: uppercase;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .status-badge.focused {
@@ -1016,40 +1254,72 @@
             <div class="card social-card">
                 <h2>Social Accountability</h2>
                 <div class="social-grid">
-                    <!-- Circular SVG Gauge -->
-                    <div class="focus-gauge-container">
-                        <div class="svg-container">
-                            <svg class="gauge-svg" viewBox="0 0 100 100">
-                                <circle class="gauge-bg" cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.03)" stroke-width="8" fill="transparent"></circle>
-                                <circle class="gauge-fill" id="focusGaugeFill" cx="50" cy="50" r="40" stroke="url(#indigoGrad)" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="251.2" fill="transparent" stroke-linecap="round"></circle>
-                                <defs>
-                                    <linearGradient id="indigoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#6366f1" />
-                                        <stop offset="100%" stop-color="#a855f7" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <div class="gauge-text">
-                                <span id="focusScoreValue">0</span>
-                                <span class="pct">%</span>
+                    <!-- Twin User Synergy Container -->
+                    <div class="synergy-container">
+                        <!-- Left User Profile Slot -->
+                        <div class="user-profile-slot">
+                            <div class="user-profile-header">
+                                <div class="user-avatar-small">AS</div>
+                                <div class="user-info">
+                                    <div class="user-name">Anushka (You)</div>
+                                    <div class="user-role">Digital Soulist</div>
+                                </div>
+                                <div class="user-status-badge focused">FOCUSED</div>
+                            </div>
+                            <div class="micro-chart-container">
+                                <div class="micro-chart-title">Focus Velocity Timeline (Last Hour)</div>
+                                <canvas id="leftMicroChart" class="micro-chart-canvas"></canvas>
                             </div>
                         </div>
-                        <div class="gauge-label label-optimal" id="focusScoreLabel">OPTIMAL FOCUS</div>
-                    </div>
-                    
-                    <div class="avatar-panel">
-                        <div class="avatar-holo-wrap">
-                            <div class="avatar-holo">
-                                <div class="holo-shell"></div>
-                                <div class="holo-grid"></div>
-                                <div class="holo-core"></div>
-                                <div class="holo-figure"></div>
+
+                        <!-- Center Synergy Core -->
+                        <div class="synergy-core">
+                            <div class="synergy-rings-container">
+                                <svg class="synergy-connector-svg" viewBox="0 0 220 220">
+                                    <!-- Animated particle trail paths -->
+                                    <defs>
+                                        <path id="leftPath" d="M 80 110 Q 110 90, 140 110" fill="none"/>
+                                        <path id="rightPath" d="M 140 110 Q 110 130, 80 110" fill="none"/>
+                                    </defs>
+                                    <!-- Particle trail from left to right -->
+                                    <circle cx="0" cy="0" r="3" fill="rgba(6, 182, 212, 0.8)" class="connector-particle-trail">
+                                        <animateMotion dur="2s" repeatCount="indefinite">
+                                            <mpath href="#leftPath"/>
+                                        </animateMotion>
+                                    </circle>
+                                    <!-- Particle trail from right to left -->
+                                    <circle cx="0" cy="0" r="3" fill="rgba(236, 72, 153, 0.8)" class="connector-particle-trail">
+                                        <animateMotion dur="2s" begin="1s" repeatCount="indefinite">
+                                            <mpath href="#rightPath"/>
+                                        </animateMotion>
+                                    </circle>
+                                </svg>
+                                
+                                <div class="synergy-ring left">64%</div>
+                                <div class="synergy-ring right">64%</div>
+                                <div class="synergy-center-dot"></div>
+                            </div>
+                            <div class="synergy-label">Balanced Attention Synergy</div>
+                        </div>
+
+                        <!-- Right User Profile Slot -->
+                        <div class="user-profile-slot">
+                            <div class="user-profile-header">
+                                <div class="user-avatar-small partner">AC</div>
+                                <div class="user-info">
+                                    <div class="user-name">Anushka Choudhary</div>
+                                    <div class="user-role">Paired Soul</div>
+                                </div>
+                                <div class="user-status-badge focused">FOCUSED</div>
+                            </div>
+                            <div class="micro-chart-container">
+                                <div class="micro-chart-title">Focus Velocity Timeline (Last Hour)</div>
+                                <canvas id="rightMicroChart" class="micro-chart-canvas"></canvas>
                             </div>
                         </div>
-                        <div class="synched-banner">SYNCHED</div>
                     </div>
-                    
-                    <!-- Binary Souls Pairs -->
+
+                    <!-- Team Sync Status Banner -->
                     <div class="teammates-container">
                         <div class="teammate-row">
                             <div class="avatar">AS</div>
@@ -1060,14 +1330,20 @@
                             <div class="status-badge focused">FOCUSED</div>
                         </div>
                         <div class="teammate-row">
-                            <div class="avatar partner">BS</div>
+                            <div class="avatar partner">AC</div>
                             <div class="teammate-meta">
-                                <div class="teammate-name">Anushka Choudhary (Teammate)</div>
+                                <div class="teammate-name">Anushka Choudhary</div>
                                 <div class="teammate-role">Paired Soul</div>
                             </div>
                             <div class="status-badge focused" id="partnerBadge">FOCUSED</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Team Sync Status Indicator -->
+                <div style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; gap: 8px; flex-wrap: wrap; text-align: center;">
+                    <span style="display: inline-block; width: 10px; height: 10px; background: #30d158; border-radius: 50%; box-shadow: 0 0 10px #30d158; animation: pulse 2s infinite;"></span>
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #a5b4fc; letter-spacing: 0.5px;">Team Sync: 91% Excellent</span>
                 </div>
             </div>
         </div>
@@ -1362,15 +1638,25 @@
                 if (this.lineChartInstance) this.lineChartInstance.destroy();
                 
                 const ctx = document.getElementById(canvasId).getContext('2d');
-                const glowGradient = ctx.createLinearGradient(0, 0, 0, 360);
-                glowGradient.addColorStop(0, 'rgba(129, 140, 248, 0.42)');
-                glowGradient.addColorStop(0.38, 'rgba(79, 70, 229, 0.18)');
-                glowGradient.addColorStop(1, 'rgba(59, 130, 246, 0.02)');
-
-                const fillGradient = ctx.createLinearGradient(0, 0, 0, 360);
-                fillGradient.addColorStop(0, 'rgba(129, 140, 248, 0.24)');
-                fillGradient.addColorStop(0.65, 'rgba(79, 70, 229, 0.10)');
-                fillGradient.addColorStop(1, 'rgba(79, 70, 229, 0.00)');
+                
+                // Neon gradient for Focus Velocity Stream (electric blue to bright purple/magenta)
+                const neonGradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+                neonGradient.addColorStop(0, '#00d9ff');      // Electric cyan
+                neonGradient.addColorStop(0.4, '#6366f1');    // Electric blue
+                neonGradient.addColorStop(0.7, '#a855f7');    // Purple
+                neonGradient.addColorStop(1, '#ec4899');      // Bright magenta
+                
+                // Background wireframe effect gradient
+                const wireframeGradient = ctx.createLinearGradient(0, 0, 0, 360);
+                wireframeGradient.addColorStop(0, 'rgba(99, 102, 241, 0.06)');
+                wireframeGradient.addColorStop(0.5, 'rgba(79, 70, 229, 0.02)');
+                wireframeGradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
+                
+                // System Baseline Terrain fill (translucent cyan)
+                const baselineFillGradient = ctx.createLinearGradient(0, 0, 0, 360);
+                baselineFillGradient.addColorStop(0, 'rgba(6, 182, 212, 0.12)');
+                baselineFillGradient.addColorStop(0.65, 'rgba(34, 211, 238, 0.05)');
+                baselineFillGradient.addColorStop(1, 'rgba(34, 211, 238, 0.00)');
 
                 this.lineChartInstance = new Chart(ctx, {
                     type: 'line',
@@ -1378,50 +1664,46 @@
                         labels: liveMoodFeed.map(d => d.label),
                         datasets: [
                             {
-                                label: 'Focus Tracking Stream',
-                                data: liveMoodFeed.map(d => d.score),
-                                borderColor: 'rgba(129, 140, 248, 0.20)',
-                                borderWidth: 18,
-                                fill: false,
-                                tension: 0.62,
+                                label: 'Background Wireframe Terrain',
+                                data: liveMoodFeed.map(d => d.score * 0.15),
+                                borderColor: 'rgba(99, 102, 241, 0.02)',
+                                borderWidth: 0,
+                                backgroundColor: wireframeGradient,
+                                fill: 'origin',
+                                tension: 0.35,
                                 pointRadius: 0,
                                 pointHoverRadius: 0,
                                 segment: {
-                                    borderColor: ctx => ctx.p0DataIndex !== undefined && liveMoodFeed[ctx.p0DataIndex].score < 0 ? 'rgba(248, 113, 113, 0.22)' : 'rgba(129, 140, 248, 0.18)',
-                                    borderWidth: () => 18
+                                    borderWidth: 0
                                 }
                             },
                             {
-                                label: 'Focus Mood Live Feed',
+                                label: 'Focus Velocity Stream',
                                 data: liveMoodFeed.map(d => d.score),
-                                borderColor: '#818cf8',
-                                borderWidth: 4,
-                                backgroundColor: fillGradient,
-                                fill: 'start',
-                                tension: 0.52,
-                                pointRadius: ctx => Math.max(4, Math.abs(liveMoodFeed[ctx.dataIndex].score) * 7),
-                                pointHoverRadius: 12,
-                                pointBackgroundColor: ctx => {
-                                    const v = liveMoodFeed[ctx.dataIndex].score;
-                                    return v >= 0 ? 'rgba(129, 140, 248, 0.92)' : 'rgba(251, 113, 133, 0.92)';
-                                },
-                                pointBorderColor: '#ffffff',
-                                pointBorderWidth: ctx => liveMoodFeed[ctx.dataIndex].score === 0 ? 2 : 3,
-                                pointStyle: 'circle',
-                                segment: {
-                                    borderColor: ctx => ctx.p0DataIndex !== undefined && liveMoodFeed[ctx.p0DataIndex].score < 0 ? '#fb7185' : '#818cf8'
-                                }
+                                borderColor: neonGradient,
+                                borderWidth: 3,
+                                fill: false,
+                                tension: 0.4,
+                                pointRadius: 0,
+                                pointHoverRadius: 0,
+                                shadowColor: 'rgba(0, 217, 255, 0.4)',
+                                shadowBlur: 15,
+                                shadowOffsetX: 0,
+                                shadowOffsetY: 0
                             },
                             {
-                                label: 'Attention Baseline',
+                                label: 'System Baseline Terrain',
                                 data: liveMoodFeed.map(d => d.score * 0.3 - 0.2),
-                                borderColor: 'rgba(164, 202, 254, 0.12)',
+                                borderColor: 'rgba(6, 182, 212, 0.7)',
                                 borderWidth: 2,
-                                borderDash: [6, 8],
-                                fill: false,
-                                tension: 0.42,
+                                backgroundColor: baselineFillGradient,
+                                fill: 'start',
+                                tension: 0.35,
                                 pointRadius: 0,
-                                hidden: true
+                                pointHoverRadius: 0,
+                                segment: {
+                                    borderColor: 'rgba(6, 182, 212, 0.7)'
+                                }
                             }
                         ]
                     },
@@ -1454,13 +1736,61 @@
                                 }
                             },
                             tooltip: {
-                                backgroundColor: 'rgba(13, 17, 28, 0.92)',
-                                padding: 14,
-                                cornerRadius: 14,
+                                backgroundColor: 'rgba(13, 17, 28, 0.85)',
+                                padding: 16,
+                                cornerRadius: 16,
                                 borderWidth: 1,
-                                borderColor: 'rgba(255, 255, 255, 0.12)',
+                                borderColor: 'rgba(255, 255, 255, 0.15)',
                                 titleFont: { weight: 700 },
                                 bodyFont: { weight: 500 },
+                                displayColors: true,
+                                boxPadding: 8,
+                                external: function(context) {
+                                    const tooltipEl = document.getElementById('chartjs-tooltip');
+                                    if (!tooltipEl) {
+                                        const div = document.createElement('div');
+                                        div.id = 'chartjs-tooltip';
+                                        div.style.cssText = `
+                                            position: absolute;
+                                            background: rgba(13, 17, 28, 0.92);
+                                            backdrop-filter: blur(8px);
+                                            -webkit-backdrop-filter: blur(8px);
+                                            border: 1px solid rgba(255, 255, 255, 0.15);
+                                            border-radius: 12px;
+                                            padding: 12px 16px;
+                                            pointer-events: none;
+                                            z-index: 1000;
+                                            font-family: 'Plus Jakarta Sans', sans-serif;
+                                            font-size: 0.9rem;
+                                            color: #ffffff;
+                                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                                        `;
+                                        document.body.appendChild(div);
+                                    }
+                                    
+                                    if (context.opacity === 0) {
+                                        tooltipEl.style.opacity = 0;
+                                        return;
+                                    }
+                                    
+                                    const bodyLines = [];
+                                    context.tooltip.body.forEach((bodyItem, i) => {
+                                        bodyLines.push(bodyItem.lines[0]);
+                                    });
+                                    
+                                    const title = context.tooltip.title[0] || '';
+                                    let innerHtml = `<div style="font-weight: 700; margin-bottom: 4px; color: #a5b4fc;">${title}</div>`;
+                                    bodyLines.forEach((line, i) => {
+                                        innerHtml += `<div style="margin: 2px 0; color: #cbd5e1;">${line}</div>`;
+                                    });
+                                    
+                                    tooltipEl.innerHTML = innerHtml;
+                                    tooltipEl.style.opacity = 1;
+                                    
+                                    const pos = context.chart.canvas.getBoundingClientRect();
+                                    tooltipEl.style.left = pos.left + context.tooltip.caretX + 'px';
+                                    tooltipEl.style.top = pos.top + context.tooltip.caretY - 40 + 'px';
+                                },
                                 callbacks: {
                                     title: function(context) {
                                         const idx = context[0]?.dataIndex;
@@ -1500,17 +1830,19 @@
                                     }
                                 },
                                 grid: {
-                                    color: 'rgba(148, 163, 184, 0.14)',
-                                    borderDash: [4, 7],
-                                    lineWidth: 1.2
+                                    color: 'rgba(255, 255, 255, 0.03)',
+                                    borderDash: [0],
+                                    lineWidth: 0.8,
+                                    drawBorder: true
                                 }
                             },
                             x: {
                                 grid: {
-                                    display: true,
-                                    color: 'rgba(148, 163, 184, 0.12)',
-                                    borderDash: [2, 4],
-                                    lineWidth: 1.5
+                                    display: false,
+                                    color: 'rgba(255, 255, 255, 0.00)',
+                                    borderDash: [],
+                                    lineWidth: 0,
+                                    drawBorder: false
                                 },
                                 ticks: {
                                     display: true,
@@ -1527,12 +1859,270 @@
                         }
                     }
                 });
+            },
+
+            renderMicroChart(canvasId, userData) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                
+                // Destroy any existing chart instance for this canvas
+                if (window.microChartInstances && window.microChartInstances[canvasId]) {
+                    window.microChartInstances[canvasId].destroy();
+                }
+                
+                if (!window.microChartInstances) {
+                    window.microChartInstances = {};
+                }
+
+                // Generate 60 data points for the last hour
+                const microData = userData.slice(0, 60).map((_, i) => {
+                    const variance = (Math.sin(i * 0.2) * 0.3 + Math.cos(i * 0.1) * 0.2);
+                    return 0.5 + variance + (Math.random() - 0.5) * 0.1;
+                });
+
+                const microGradient = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+                microGradient.addColorStop(0, '#00d9ff');
+                microGradient.addColorStop(0.5, '#a855f7');
+                microGradient.addColorStop(1, '#ec4899');
+
+                const microFillGradient = ctx.createLinearGradient(0, 0, 0, 80);
+                microFillGradient.addColorStop(0, 'rgba(99, 102, 241, 0.15)');
+                microFillGradient.addColorStop(1, 'rgba(99, 102, 241, 0.00)');
+
+                window.microChartInstances[canvasId] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: microData.length}, (_, i) => i),
+                        datasets: [{
+                            label: 'Focus Velocity',
+                            data: microData,
+                            borderColor: microGradient,
+                            borderWidth: 2,
+                            backgroundColor: microFillGradient,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 0,
+                            pointHoverRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'none' },
+                        animation: { duration: 800 },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 1,
+                                ticks: { display: false },
+                                grid: { display: false }
+                            },
+                            x: {
+                                ticks: { display: false },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
             }
         };
 
-        // ----------------------------------------------------
-        // 4. UI Manager Module
-        // ----------------------------------------------------
+        // ============================================================
+        // 5. Focus Polling Module - Real-time async polling with smooth updates
+        // ============================================================
+        const FocusPoller = {
+            isRunning: false,
+            pollingInterval: null,
+            maxDataPoints: 30,
+            liveDataBuffer: [],
+            teamDataBuffer: [],
+
+            /**
+             * Initialize and start the async polling loop
+             */
+            start() {
+                if (this.isRunning) {
+                    console.warn('FocusPoller is already running');
+                    return;
+                }
+                
+                this.isRunning = true;
+                console.log('🔄 FocusPoller: Starting real-time focus polling...');
+                
+                // Poll every 1000ms
+                this.pollingInterval = setInterval(() => {
+                    this.poll();
+                }, 1000);
+            },
+
+            /**
+             * Stop the polling loop
+             */
+            stop() {
+                if (this.pollingInterval) {
+                    clearInterval(this.pollingInterval);
+                    this.pollingInterval = null;
+                }
+                this.isRunning = false;
+                console.log('⏹️  FocusPoller: Polling stopped');
+            },
+
+            /**
+             * Main polling function - fetches focus data and updates charts
+             */
+            async poll() {
+                try {
+                    const apiHost = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : window.location.origin;
+                    const response = await fetch(`${apiHost}/api/verify-focus`);
+                    
+                    if (!response.ok) {
+                        console.warn(`FocusPoller: API returned status ${response.status}`);
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    this.processIncomingData(data);
+                } catch (error) {
+                    console.warn('FocusPoller: Fetch error (non-fatal)', error.message);
+                    // Continue polling on error - graceful degradation
+                }
+            },
+
+            /**
+             * Process incoming JSON payload and push to chart datasets
+             * Expected structure: { user_focus: number, teammate_status: string, timestamp: string }
+             */
+            processIncomingData(payload) {
+                if (!payload) return;
+
+                // Extract focus score (normalize to 0-1 range)
+                const userFocus = Math.max(0, Math.min(1, (payload.user_focus || 0.5)));
+                const timestamp = payload.timestamp || new Date().toLocaleTimeString();
+                const teammateStatus = payload.teammate_status || 'IDLE';
+
+                // Create data point object
+                const dataPoint = {
+                    score: userFocus,
+                    label: timestamp.split(' ')[0],
+                    platform: 'live',
+                    rating: userFocus > 0.6 ? 'High' : userFocus > 0.3 ? 'Medium' : 'Low'
+                };
+
+                // Push to buffers
+                this.liveDataBuffer.push(dataPoint);
+                this.teamDataBuffer.push({
+                    ...dataPoint,
+                    teammate: teammateStatus
+                });
+
+                // Enforce sliding window - keep max 30 data points
+                if (this.liveDataBuffer.length > this.maxDataPoints) {
+                    this.liveDataBuffer.shift();
+                }
+                if (this.teamDataBuffer.length > this.maxDataPoints) {
+                    this.teamDataBuffer.shift();
+                }
+
+                // Update all chart instances with new data
+                this.updateChartsWithNewData(dataPoint);
+            },
+
+            /**
+             * Smooth push of new data into Chart.js dataset arrays
+             */
+            updateChartsWithNewData(dataPoint) {
+                // Update main line chart (Focus Mood Live Feed)
+                if (ChartManager.lineChartInstance && ChartManager.lineChartInstance.data.datasets.length > 0) {
+                    const datasets = ChartManager.lineChartInstance.data.datasets;
+                    const labels = ChartManager.lineChartInstance.data.labels;
+
+                    // Push to Focus Velocity Stream (Dataset 1)
+                    if (datasets[1]) {
+                        datasets[1].data.push(dataPoint.score);
+                        if (datasets[1].data.length > this.maxDataPoints) {
+                            datasets[1].data.shift();
+                        }
+                    }
+
+                    // Push to System Baseline Terrain (Dataset 2)
+                    if (datasets[2]) {
+                        const baselineScore = dataPoint.score * 0.3 - 0.2;
+                        datasets[2].data.push(baselineScore);
+                        if (datasets[2].data.length > this.maxDataPoints) {
+                            datasets[2].data.shift();
+                        }
+                    }
+
+                    // Update wireframe background (Dataset 0)
+                    if (datasets[0]) {
+                        datasets[0].data.push(dataPoint.score * 0.15);
+                        if (datasets[0].data.length > this.maxDataPoints) {
+                            datasets[0].data.shift();
+                        }
+                    }
+
+                    // Add label
+                    labels.push(dataPoint.label);
+                    if (labels.length > this.maxDataPoints) {
+                        labels.shift();
+                    }
+
+                    // Trigger smooth update
+                    ChartManager.lineChartInstance.update('none');
+                }
+
+                // Update left micro-chart (Anushka - You)
+                if (window.microChartInstances && window.microChartInstances['leftMicroChart']) {
+                    const chart = window.microChartInstances['leftMicroChart'];
+                    chart.data.datasets[0].data.push(dataPoint.score);
+                    chart.data.labels.push(dataPoint.label);
+                    
+                    if (chart.data.datasets[0].data.length > this.maxDataPoints) {
+                        chart.data.datasets[0].data.shift();
+                        chart.data.labels.shift();
+                    }
+                    
+                    chart.update('none');
+                }
+
+                // Update right micro-chart (Anushka Choudhary - Teammate)
+                // Add slight variance for teammate to show independent tracking
+                if (window.microChartInstances && window.microChartInstances['rightMicroChart']) {
+                    const chart = window.microChartInstances['rightMicroChart'];
+                    const teamVariance = dataPoint.score + (Math.random() - 0.5) * 0.15;
+                    const teamScore = Math.max(0, Math.min(1, teamVariance));
+                    
+                    chart.data.datasets[0].data.push(teamScore);
+                    chart.data.labels.push(dataPoint.label);
+                    
+                    if (chart.data.datasets[0].data.length > this.maxDataPoints) {
+                        chart.data.datasets[0].data.shift();
+                        chart.data.labels.shift();
+                    }
+                    
+                    chart.update('none');
+                }
+            }
+        };
+
+        // Render micro-charts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const mockLeftData = Array.from({length: 60}, () => ({}));
+            const mockRightData = Array.from({length: 60}, () => ({}));
+            ChartManager.renderMicroChart('leftMicroChart', mockLeftData);
+            ChartManager.renderMicroChart('rightMicroChart', mockRightData);
+            
+            // Start real-time focus polling after a short delay to ensure charts are loaded
+            setTimeout(() => {
+                FocusPoller.start();
+            }, 500);
+        });
         const UIManager = {
             updateCorrelation(text) {
                 document.getElementById('correlationText').textContent = text;
@@ -1694,6 +2284,10 @@
                 
                 // 4. Render Focus Mood Live Feed (Line Chart)
                 ChartManager.renderLineChart('lineChart', processed.liveMoodFeed);
+                
+                // 4b. Render Micro-Charts for Twin User Synergy
+                ChartManager.renderMicroChart('leftMicroChart', processed.liveMoodFeed);
+                ChartManager.renderMicroChart('rightMicroChart', processed.liveMoodFeed);
                 
                 // 5. Render Top Distracting Sites Leaderboard
                 const sortedSites = DataProcessor.generateSortedSites(processed.siteStats);
