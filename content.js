@@ -408,7 +408,26 @@ function showIntentPrompt() {
         const btn = e.target.closest("button");
         if (!btn || !btn.dataset.reason) return;
         const reason = btn.dataset.reason;
-        
+
+        if (reason === "Study") {
+            setStudyVerificationLoading();
+            startVerifyFocusPolling();
+            try {
+                await fetch("http://127.0.0.1:8000/log-intent", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        site: location.hostname,
+                        reason: reason,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+            } catch (err) {
+                console.log("Study verification request failed", err);
+            }
+            return;
+        }
+
         try {
             const res = await fetch("http://127.0.0.1:8000/log-intent", {
                 method:"POST",
@@ -474,6 +493,126 @@ function startFrictionTimer() {
     }, 1000);
 }
 
+function ensureFocusWarningStyles() {
+    if (document.getElementById('ff-focus-warning-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'ff-focus-warning-styles';
+    style.textContent = `
+        #ff-focus-warning-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2147483646;
+            opacity: 0;
+            transition: opacity 0.35s ease, box-shadow 0.35s ease;
+            box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0);
+        }
+
+        #ff-focus-warning-overlay.active {
+            opacity: 1;
+            box-shadow: inset 0 0 0 24px rgba(239, 68, 68, 0.28);
+            animation: ff-focus-warning-pulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes ff-focus-warning-pulse {
+            0%, 100% {
+                box-shadow: inset 0 0 0 18px rgba(239, 68, 68, 0.22);
+            }
+            50% {
+                box-shadow: inset 0 0 0 24px rgba(239, 68, 68, 0.35);
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+}
+
+function showFocusWarningUI() {
+    ensureFocusWarningStyles();
+    let overlay = document.getElementById('ff-focus-warning-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'ff-focus-warning-overlay';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('active'));
+    } else {
+        overlay.classList.add('active');
+    }
+}
+
+function clearFocusWarningUI() {
+    const overlay = document.getElementById('ff-focus-warning-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('active');
+    setTimeout(() => {
+        const existing = document.getElementById('ff-focus-warning-overlay');
+        if (existing && !existing.classList.contains('active')) existing.remove();
+    }, 400);
+}
+
+function showEngineOfflineWarning() {
+    const overlay = document.getElementById('ff-engine-offline-overlay');
+    if (overlay) return; // Already showing
+    
+    const div = document.createElement('div');
+    div.id = 'ff-engine-offline-overlay';
+    Object.assign(div.style, {
+        position: 'fixed',
+        top: '0', left: '0', right: '0', bottom: '0',
+        background: 'rgba(23, 25, 35, 0.88)',
+        backdropFilter: 'blur(12px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: '2147483645',
+        fontFamily: "'Outfit', sans-serif",
+    });
+    
+    div.innerHTML = `
+        <div style="
+            text-align: center;
+            color: #fff;
+            padding: 40px;
+            max-width: 400px;
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 24px;
+            background: rgba(239, 68, 68, 0.05);
+        ">
+            <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+            <h2 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 700;">Vision Engine Offline</h2>
+            <p style="margin: 0; color: #cbd5e1; font-size: 15px;">
+                Your attention engine has disconnected. System locked for safety. Please restart the vision engine.
+            </p>
+        </div>
+    `;
+    
+    document.body.appendChild(div);
+}
+
+function requestFocusState() {
+    chrome.runtime.sendMessage({ type: 'request-focus-state' }, (response) => {
+        if (!response || !response.success) return;
+        
+        // If engine is offline, show critical warning and maintain lock
+        if (!response.engine_alive) {
+            showEngineOfflineWarning();
+            return;
+        }
+        
+        if (response.focus_state === 'warning') {
+            showFocusWarningUI();
+        } else {
+            clearFocusWarningUI();
+        }
+    });
+}
+
+function startFocusStatePolling() {
+    requestFocusState();
+    setInterval(requestFocusState, 2000);
+}
+
 function showToast(msg) {
     const toast = document.createElement("div");
     toast.innerText = msg;
@@ -490,6 +629,75 @@ function showToast(msg) {
     setTimeout(() => toast.remove(), 4000);
 }
 
+function setStudyVerificationLoading() {
+    const content = document.querySelector("#binary-souls-barrier > div");
+    if (!content) return;
+    content.innerHTML = `
+        <div class="ff-friction-container">
+            <div class="ff-stop-icon-wrapper">
+                <span class="ff-stop-emoji">🔎</span>
+            </div>
+            <h1 class="ff-friction-title">Verifying focus via attention engine...</h1>
+            <p class="ff-friction-desc">Please keep your eyes on the screen while we confirm attention.</p>
+        </div>
+    `;
+}
+
+function clearYouTubeBlurStyles() {
+    document.querySelectorAll('[style*="blur("], [style*="backdrop-filter"]')?.forEach(el => {
+        if (el.style) {
+            el.style.filter = el.style.filter.replace(/blur\([^)]*\)/g, '').trim();
+            el.style.backdropFilter = '';
+            el.style.WebkitBackdropFilter = '';
+            if (!el.style.cssText.trim()) el.removeAttribute('style');
+        }
+    });
+}
+
+function startVerifyFocusPolling() {
+    const barrier = document.getElementById("binary-souls-barrier");
+    if (!barrier || barrier.dataset.verifyFocusInterval) return;
+
+    const intervalId = window.setInterval(async () => {
+        try {
+            const res = await fetch("http://127.0.0.1:8000/api/verify-focus", { cache: 'no-store' });
+            const data = await res.json();
+            
+            // Check if vision engine is alive before allowing unlock
+            if (!data.engine_alive) {
+                console.warn("Vision engine offline - blocking unlock");
+                // Keep barrier and show offline warning
+                const content = document.querySelector("#binary-souls-barrier > div");
+                if (content) {
+                    content.innerHTML = `
+                        <div class="ff-friction-container">
+                            <div class="ff-stop-icon-wrapper">
+                                <span class="ff-stop-emoji">⚠️</span>
+                            </div>
+                            <h1 class="ff-friction-title">Attention Engine Offline</h1>
+                            <p class="ff-friction-desc">Vision engine lost connection. System remains locked for safety.</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            if (data.verified) {
+                window.clearInterval(intervalId);
+                delete barrier.dataset.verifyFocusInterval;
+                clearYouTubeBlurStyles();
+                barrier.style.transition = "opacity 0.35s ease";
+                barrier.style.opacity = "0";
+                setTimeout(() => barrier.remove(), 420);
+            }
+        } catch (err) {
+            console.debug("Verify-focus polling failed:", err);
+        }
+    }, 1000);
+
+    barrier.dataset.verifyFocusInterval = intervalId;
+}
+
 function removeBarrier() {
     const barrier = document.getElementById("binary-souls-barrier");
     if (barrier) { 
@@ -500,6 +708,7 @@ function removeBarrier() {
 
 // KEY CHANGE: Show immediately. Don't poll first.
 showIntentPrompt();
+startFocusStatePolling();
 
 // Also handle YouTube SPA navigation
 let lastUrl = location.href;

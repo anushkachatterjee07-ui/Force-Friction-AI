@@ -11,7 +11,7 @@ app = FastAPI(title="Force Friction AI - Backend")
 # without encountering browser CORS errors.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],  # Allows all origins for local development
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
@@ -21,9 +21,18 @@ app.add_middleware(
 # Note: For production with multiple workers, use a database or Redis instead.
 IS_LOCKED = True
 UNLOCK_EXPIRY = None
+FOCUS_STATE = "active"
+LAST_HEARTBEAT = datetime.now(timezone.utc)  # Track vision engine heartbeat
+HEARTBEAT_TIMEOUT = 5  # seconds - if no heartbeat in 5s, engine is dead
 
 # Binary Souls team state
 team_state = {"partner_status": "FOCUSED"}
+
+def is_vision_engine_alive():
+    """Check if the vision engine is sending heartbeats regularly."""
+    global LAST_HEARTBEAT
+    elapsed = (datetime.now(timezone.utc) - LAST_HEARTBEAT).total_seconds()
+    return elapsed < HEARTBEAT_TIMEOUT
 
 @app.get("/api/status")
 async def get_status():
@@ -59,6 +68,66 @@ async def get_team_stats():
     Get the real-time focus status of the team/partner.
     """
     return team_state
+
+class FocusStateRequest(BaseModel):
+    state: str
+
+@app.get("/api/focus-state")
+async def get_focus_state():
+    """
+    Retrieve the current focus validation state reported by the vision engine.
+    Includes heartbeat status to alert extension if engine is offline.
+    """
+    engine_alive = is_vision_engine_alive()
+    return {
+        "focus_state": FOCUS_STATE,
+        "warning_active": FOCUS_STATE == "warning",
+        "locked": FOCUS_STATE == "locked",
+        "engine_alive": engine_alive
+    }
+
+@app.get("/api/verify-focus")
+async def verify_focus():
+    """
+    Verify whether the attention engine currently reports a focused state.
+    Also checks that the vision engine is alive (sending heartbeats).
+    If heartbeat is missing, rejection prevents blind unlocks.
+    """
+    engine_alive = is_vision_engine_alive()
+    return {
+        "verified": FOCUS_STATE == "active" and engine_alive,
+        "focus_state": FOCUS_STATE,
+        "engine_alive": engine_alive,
+        "reason": "Engine offline" if not engine_alive else None
+    }
+
+@app.post("/api/focus-state")
+async def update_focus_state(request: FocusStateRequest):
+    """
+    Receive asynchronous focus state updates from the vision engine.
+    """
+    global FOCUS_STATE, IS_LOCKED, UNLOCK_EXPIRY
+    new_state = request.state.lower()
+    if new_state not in {"active", "stale", "warning", "locked"}:
+        return {"success": False, "message": "Invalid focus state"}
+
+    FOCUS_STATE = new_state
+    if new_state == "locked":
+        IS_LOCKED = True
+        UNLOCK_EXPIRY = None
+        database.log_event("FOCUS_LOCKOUT", "Vision Engine", "Focus missing for 7 seconds")
+
+    return {"success": True, "focus_state": FOCUS_STATE}
+
+@app.post("/api/heartbeat")
+async def heartbeat():
+    """
+    Receive heartbeat from vision engine to confirm it's alive.
+    Called every 1-2 seconds to maintain system liveness.
+    """
+    global LAST_HEARTBEAT
+    LAST_HEARTBEAT = datetime.now(timezone.utc)
+    return {"success": True, "timestamp": LAST_HEARTBEAT.isoformat()}
 
 @app.post("/api/unlock")
 async def unlock(minutes: int = 5):
