@@ -346,35 +346,53 @@
             width: 100%;
             margin-top: 24px;
             border-radius: 28px;
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            backdrop-filter: blur(24px);
-            background: rgba(10, 12, 18, 0.72);
-            box-shadow: inset 0 0 28px rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.16);
+            backdrop-filter: blur(28px);
+            background: rgba(8, 10, 18, 0.80);
+            box-shadow:
+                inset 0 0 36px rgba(99, 102, 241, 0.14),
+                0 26px 80px rgba(15, 23, 42, 0.32);
             overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 900px;
         }
 
         .chart-container::before {
             content: '';
             position: absolute;
             top: 12px;
-            left: 14px;
-            width: 160px;
-            height: 160px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 48%);
+            left: -10px;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.18), transparent 45%);
             pointer-events: none;
             mix-blend-mode: screen;
+            filter: blur(14px);
         }
 
         .chart-container::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            right: 12px;
-            width: 180px;
-            height: 110px;
-            background: radial-gradient(circle, rgba(48, 209, 88, 0.10), transparent 48%);
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 18% 18%, rgba(56, 189, 248, 0.10), transparent 20%),
+                radial-gradient(circle at 84% 72%, rgba(236, 72, 153, 0.08), transparent 24%),
+                linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 70%);
+            opacity: 0.85;
             pointer-events: none;
             mix-blend-mode: screen;
+        }
+
+        .chart-container .holo-grid {
+            position: absolute;
+            inset: 18px;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 26px 26px;
+            opacity: 0.30;
+            pointer-events: none;
+            transform: translateZ(22px);
         }
 
         h2 {
@@ -472,17 +490,45 @@
             gap: 24px;
         }
 
+        .social-card {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+        }
+
         .social-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 24px;
             align-items: center;
+            position: relative;
         }
 
         @media (min-width: 600px) {
             .social-grid {
                 grid-template-columns: 1.2fr 1fr;
             }
+        }
+
+        @media (min-width: 900px) {
+            .social-grid {
+                grid-template-columns: 1.1fr 0.95fr 1fr;
+            }
+        }
+
+        .social-card::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 18%;
+            width: 62%;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0) 0%, rgba(56, 189, 248, 0.5) 25%, rgba(236, 72, 153, 0.5) 50%, rgba(56, 189, 248, 0.5) 75%, rgba(56, 189, 248, 0) 100%);
+            transform: translateY(-50%);
+            filter: blur(1px);
+            pointer-events: none;
+            z-index: 1;
         }
 
         .focus-gauge-container {
@@ -496,12 +542,162 @@
             padding: 24px;
             text-align: center;
             position: relative;
+            overflow: hidden;
         }
 
-        .svg-container {
+        .focus-gauge-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.12), transparent 28%),
+                        radial-gradient(circle at 85% 90%, rgba(236, 72, 153, 0.08), transparent 24%);
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .avatar-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 260px;
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 20px 18px 18px;
             position: relative;
-            width: 140px;
-            height: 140px;
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        .avatar-holo-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .avatar-holo {
+            width: 180px;
+            height: 180px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: holoRotate 12s linear infinite;
+        }
+
+        .holo-shell {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1px solid rgba(129, 140, 248, 0.35);
+            box-shadow: inset 0 0 28px rgba(129, 140, 248, 0.18), 0 0 30px rgba(129, 140, 248, 0.14);
+        }
+
+        .avatar-holo .holo-grid {
+            position: absolute;
+            inset: 12px;
+            border-radius: 50%;
+            background-image:
+                radial-gradient(circle at 50% 12%, rgba(255,255,255,0.12), transparent 10%),
+                linear-gradient(to right, rgba(129, 140, 248, 0.12) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(129, 140, 248, 0.12) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.8;
+            transform: translateZ(14px) rotateX(85deg);
+            pointer-events: none;
+        }
+
+        .avatar-holo .holo-core {
+            position: absolute;
+            inset: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 45% 35%, rgba(99, 102, 241, 0.34), transparent 54%),
+                        radial-gradient(circle at 55% 65%, rgba(236, 72, 153, 0.22), transparent 58%);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.16);
+            transform: translateZ(18px);
+        }
+
+        .avatar-holo .holo-figure {
+            position: absolute;
+            inset: 46px;
+            border-radius: 50%;
+            border: 1px dashed rgba(255, 255, 255, 0.18);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+            opacity: 0.95;
+            transform: translateZ(24px) rotateX(10deg);
+        }
+
+        .synched-banner {
+            margin-top: 18px;
+            padding: 10px 18px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #ffffff;
+            text-transform: uppercase;
+            background: rgba(99, 102, 241, 0.16);
+            border: 1px solid rgba(99, 102, 241, 0.28);
+            border-radius: 999px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.24);
+            animation: pulseSynched 1.8s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes holoRotate {
+            0% { transform: rotateY(0deg) rotateX(6deg); }
+            50% { transform: rotateY(360deg) rotateX(6deg); }
+            100% { transform: rotateY(720deg) rotateX(6deg); }
+        }
+
+        @keyframes pulseSynched {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(99, 102, 241, 0.22); }
+            50% { transform: scale(1.04); box-shadow: 0 0 32px rgba(99, 102, 241, 0.35); }
+        }
+
+        .avatar-panel::after {
+            content: '';
+            position: absolute;
+            top: 34%;
+            right: -8px;
+            width: 38px;
+            height: 38px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.18), transparent 55%);
+            filter: blur(8px);
+            pointer-events: none;
+        }
+
+        .chart-container.hologram-terrain {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container.hologram-terrain .holo-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.24;
+            pointer-events: none;
+            transform: translateZ(24px);
+        }
+
+        .chart-container.hologram-terrain .terrain-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 14%, rgba(79, 70, 229, 0.12), transparent 28%),
+                        radial-gradient(circle at 80% 80%, rgba(248, 113, 113, 0.08), transparent 22%);
+            pointer-events: none;
+            opacity: 0.88;
+            mix-blend-mode: screen;
+        }
+
+        .chart-container.hologram-terrain canvas {
+            position: relative;
+            z-index: 2;
         }
 
         .gauge-svg {
@@ -777,7 +973,9 @@
             </div>
             <div class="card">
                 <h2>Focus Mood Live Feed</h2>
-                <div class="chart-container">
+                <div class="chart-container hologram-terrain">
+                    <div class="holo-grid"></div>
+                    <div class="terrain-overlay"></div>
                     <canvas id="lineChart"></canvas>
                 </div>
             </div>
@@ -826,6 +1024,18 @@
                             </div>
                         </div>
                         <div class="gauge-label label-optimal" id="focusScoreLabel">OPTIMAL FOCUS</div>
+                    </div>
+                    
+                    <div class="avatar-panel">
+                        <div class="avatar-holo-wrap">
+                            <div class="avatar-holo">
+                                <div class="holo-shell"></div>
+                                <div class="holo-grid"></div>
+                                <div class="holo-core"></div>
+                                <div class="holo-figure"></div>
+                            </div>
+                        </div>
+                        <div class="synched-banner">SYNCHED</div>
                     </div>
                     
                     <!-- Binary Souls Pairs -->
@@ -1141,52 +1351,88 @@
                 if (this.lineChartInstance) this.lineChartInstance.destroy();
                 
                 const ctx = document.getElementById(canvasId).getContext('2d');
-                const violetGrad = ctx.createLinearGradient(0, 0, 0, 360);
-                violetGrad.addColorStop(0, 'rgba(99, 102, 241, 0.55)');
-                violetGrad.addColorStop(0.45, 'rgba(99, 102, 241, 0.20)');
-                violetGrad.addColorStop(0.75, 'rgba(255, 59, 48, 0.16)');
-                violetGrad.addColorStop(1, 'rgba(255, 59, 48, 0.08)');
-                
+                const glowGradient = ctx.createLinearGradient(0, 0, 0, 360);
+                glowGradient.addColorStop(0, 'rgba(129, 140, 248, 0.42)');
+                glowGradient.addColorStop(0.38, 'rgba(79, 70, 229, 0.18)');
+                glowGradient.addColorStop(1, 'rgba(59, 130, 246, 0.02)');
+
+                const fillGradient = ctx.createLinearGradient(0, 0, 0, 360);
+                fillGradient.addColorStop(0, 'rgba(129, 140, 248, 0.24)');
+                fillGradient.addColorStop(0.65, 'rgba(79, 70, 229, 0.10)');
+                fillGradient.addColorStop(1, 'rgba(79, 70, 229, 0.00)');
+
                 this.lineChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: liveMoodFeed.map(d => d.label),
                         datasets: [
                             {
-                                label: 'Live Focus Glow',
+                                label: 'Hologram Terrain',
                                 data: liveMoodFeed.map(d => d.score),
-                                borderColor: '#ff3b30',
+                                borderColor: 'rgba(129, 140, 248, 0.20)',
                                 borderWidth: 18,
                                 fill: false,
-                                tension: 0.4,
+                                tension: 0.62,
                                 pointRadius: 0,
+                                pointHoverRadius: 0,
                                 segment: {
-                                    borderColor: ctx => ctx.p0DataIndex !== undefined && liveMoodFeed[ctx.p0DataIndex].score < 0 ? 'rgba(255, 59, 48, 0.24)' : 'rgba(255, 59, 48, 0)',
-                                    borderWidth: ctx => ctx.p0DataIndex !== undefined && liveMoodFeed[ctx.p0DataIndex].score < 0 ? 18 : 0
+                                    borderColor: ctx => ctx.p0DataIndex !== undefined && liveMoodFeed[ctx.p0DataIndex].score < 0 ? 'rgba(248, 113, 113, 0.22)' : 'rgba(129, 140, 248, 0.18)',
+                                    borderWidth: () => 18
                                 }
                             },
                             {
                                 label: 'Focus Mood Live Feed',
                                 data: liveMoodFeed.map(d => d.score),
-                                borderColor: '#818cf8', // Electric Violet
-                                borderWidth: 4, // Bold professional line width
-                                backgroundColor: violetGrad,
-                                fill: true,
-                                tension: 0.4,
-                                pointBackgroundColor: '#818cf8',
+                                borderColor: '#818cf8',
+                                borderWidth: 4,
+                                backgroundColor: fillGradient,
+                                fill: 'start',
+                                tension: 0.52,
+                                pointRadius: ctx => Math.max(4, Math.abs(liveMoodFeed[ctx.dataIndex].score) * 7),
+                                pointHoverRadius: 12,
+                                pointBackgroundColor: ctx => {
+                                    const v = liveMoodFeed[ctx.dataIndex].score;
+                                    return v >= 0 ? 'rgba(129, 140, 248, 0.92)' : 'rgba(251, 113, 133, 0.92)';
+                                },
                                 pointBorderColor: '#ffffff',
-                                pointBorderWidth: 2,
-                                pointRadius: 6,
-                                pointHoverRadius: 8,
+                                pointBorderWidth: ctx => liveMoodFeed[ctx.dataIndex].score === 0 ? 2 : 3,
+                                pointStyle: 'circle',
                                 segment: {
-                                    borderColor: ctx => ctx.p0DataIndex !== undefined && liveMoodFeed[ctx.p0DataIndex].score < 0 ? '#ff3b30' : '#818cf8'
+                                    borderColor: ctx => ctx.p0DataIndex !== undefined && liveMoodFeed[ctx.p0DataIndex].score < 0 ? '#fb7185' : '#818cf8'
                                 }
+                            },
+                            {
+                                label: 'Holo Refraction',
+                                data: liveMoodFeed.map(d => d.score * 0.3 - 0.2),
+                                borderColor: 'rgba(164, 202, 254, 0.12)',
+                                borderWidth: 2,
+                                borderDash: [6, 8],
+                                fill: false,
+                                tension: 0.42,
+                                pointRadius: 0,
+                                hidden: true
                             }
                         ]
                     },
-                    options: { 
-                        responsive: true, 
+                    options: {
+                        responsive: true,
                         maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        animation: {
+                            duration: 1400,
+                            easing: 'easeOutQuart'
+                        },
+                        layout: {
+                            padding: {
+                                top: 18,
+                                right: 14,
+                                bottom: 16,
+                                left: 14
+                            }
+                        },
                         plugins: {
                             legend: {
                                 display: true,
@@ -1197,11 +1443,13 @@
                                 }
                             },
                             tooltip: {
-                                backgroundColor: 'rgba(13, 17, 28, 0.95)',
-                                padding: 12,
-                                cornerRadius: 12,
+                                backgroundColor: 'rgba(13, 17, 28, 0.92)',
+                                padding: 14,
+                                cornerRadius: 14,
                                 borderWidth: 1,
-                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderColor: 'rgba(255, 255, 255, 0.12)',
+                                titleFont: { weight: 700 },
+                                bodyFont: { weight: 500 },
                                 callbacks: {
                                     title: function(context) {
                                         const idx = context[0]?.dataIndex;
@@ -1225,8 +1473,8 @@
                             }
                         },
                         scales: {
-                            y: { 
-                                min: -1.0, 
+                            y: {
+                                min: -1.0,
                                 max: 1.0,
                                 ticks: {
                                     stepSize: 0.5,
@@ -1240,11 +1488,20 @@
                                         weight: 600
                                     }
                                 },
-                                grid: { color: 'rgba(255, 255, 255, 0.04)' }
+                                grid: {
+                                    color: 'rgba(148, 163, 184, 0.14)',
+                                    borderDash: [4, 7],
+                                    lineWidth: 1.2
+                                }
                             },
                             x: {
-                                grid: { display: false },
-                                ticks: { 
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(148, 163, 184, 0.12)',
+                                    borderDash: [2, 4],
+                                    lineWidth: 1.5
+                                },
+                                ticks: {
                                     display: true,
                                     callback: function() { return ''; },
                                     color: '#94a3b8',
