@@ -1664,7 +1664,7 @@
                         labels: liveMoodFeed.map(d => d.label),
                         datasets: [
                             {
-                                label: 'Background Wireframe Terrain',
+                                label: 'Focus Terrain',
                                 data: liveMoodFeed.map(d => d.score * 0.15),
                                 borderColor: 'rgba(99, 102, 241, 0.02)',
                                 borderWidth: 0,
@@ -1678,7 +1678,7 @@
                                 }
                             },
                             {
-                                label: 'Focus Velocity Stream',
+                                label: 'Velocity Stream',
                                 data: liveMoodFeed.map(d => d.score),
                                 borderColor: neonGradient,
                                 borderWidth: 3,
@@ -1692,7 +1692,7 @@
                                 shadowOffsetY: 0
                             },
                             {
-                                label: 'System Baseline Terrain',
+                                label: 'Baseline Threshold',
                                 data: liveMoodFeed.map(d => d.score * 0.3 - 0.2),
                                 borderColor: 'rgba(6, 182, 212, 0.7)',
                                 borderWidth: 2,
@@ -1936,12 +1936,89 @@
         // ============================================================
         // 5. Focus Polling Module - Real-time async polling with smooth updates
         // ============================================================
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function normalizeFocusPayload(payload = {}) {
+            const userFocusValue = typeof payload.user_focus === 'number' ? payload.user_focus : null;
+            const focusScoreValue = typeof payload.focus_score === 'number' ? payload.focus_score : null;
+            const rawScore = userFocusValue ?? focusScoreValue;
+            const focusState = typeof payload.focus_state === 'string' ? payload.focus_state.toLowerCase() : '';
+            let score = 0.5;
+
+            if (typeof rawScore === 'number') {
+                score = rawScore > 1 ? clamp(rawScore / 100, 0, 1) : clamp(rawScore, 0, 1);
+            } else {
+                switch (focusState) {
+                    case 'active':
+                        score = payload.verified === true ? 0.9 : 0.8;
+                        break;
+                    case 'stale':
+                        score = 0.6;
+                        break;
+                    case 'warning':
+                        score = 0.35;
+                        break;
+                    case 'locked':
+                        score = 0.1;
+                        break;
+                    default:
+                        score = payload.verified === true ? 0.85 : 0.5;
+                }
+
+                if (payload.engine_alive === false) {
+                    score = Math.min(score, 0.2);
+                }
+            }
+
+            const teammateStatus = typeof payload.teammate_status === 'string'
+                ? payload.teammate_status
+                : typeof payload.partner_status === 'string'
+                    ? payload.partner_status
+                    : (focusState === 'active' ? 'FOCUSED' : 'IDLE');
+
+            return {
+                score: clamp(score, 0, 1),
+                teammateStatus,
+                timestamp: payload.timestamp || new Date().toISOString()
+            };
+        }
+
+        async function fetchFocusSnapshot() {
+            const apiHost = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : window.location.origin;
+            const [focusResult, teamResult] = await Promise.allSettled([
+                fetch(`${apiHost}/api/verify-focus`),
+                fetch(`${apiHost}/api/team/stats`)
+            ]);
+
+            if (focusResult.status !== 'fulfilled' || !focusResult.value.ok) {
+                throw new Error(`verify-focus fetch failed (${focusResult.status})`);
+            }
+
+            const focusPayload = await focusResult.value.json();
+            const teamPayload = teamResult.status === 'fulfilled' && teamResult.value?.ok
+                ? await teamResult.value.json()
+                : {};
+
+            return normalizeFocusPayload({ ...focusPayload, ...teamPayload });
+        }
+
+        function createLabel(timestamp) {
+            const date = timestamp ? new Date(timestamp) : new Date();
+            if (Number.isNaN(date.getTime())) {
+                return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            }
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+
         const FocusPoller = {
             isRunning: false,
             pollingInterval: null,
             maxDataPoints: 30,
             liveDataBuffer: [],
             teamDataBuffer: [],
+            lastSmoothedScore: null,
 
             /**
              * Initialize and start the async polling loop
@@ -1978,50 +2055,52 @@
              */
             async poll() {
                 try {
-                    const apiHost = window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : window.location.origin;
-                    const response = await fetch(`${apiHost}/api/verify-focus`);
-                    
-                    if (!response.ok) {
-                        console.warn(`FocusPoller: API returned status ${response.status}`);
-                        return;
-                    }
-                    
-                    const data = await response.json();
-                    this.processIncomingData(data);
+                    const snapshot = await fetchFocusSnapshot();
+                    this.processIncomingData(snapshot);
                 } catch (error) {
                     console.warn('FocusPoller: Fetch error (non-fatal)', error.message);
-                    // Continue polling on error - graceful degradation
                 }
             },
 
             /**
              * Process incoming JSON payload and push to chart datasets
-             * Expected structure: { user_focus: number, teammate_status: string, timestamp: string }
              */
             processIncomingData(payload) {
-                if (!payload) return;
+                if (!payload || typeof payload.score !== 'number') return;
 
-                // Extract focus score (normalize to 0-1 range)
-                const userFocus = Math.max(0, Math.min(1, (payload.user_focus || 0.5)));
-                const timestamp = payload.timestamp || new Date().toLocaleTimeString();
-                const teammateStatus = payload.teammate_status || 'IDLE';
+                const smoothedScore = typeof this.lastSmoothedScore === 'number'
+                    ? (this.lastSmoothedScore * 0.65) + (payload.score * 0.35)
+                    : payload.score;
+                this.lastSmoothedScore = clamp(smoothedScore, 0, 1);
 
-                // Create data point object
+                const teammateStatus = payload.teammateStatus || 'IDLE';
+                const teamScore = teammateStatus.toLowerCase() === 'focused'
+                    ? clamp(this.lastSmoothedScore + 0.03, 0, 1)
+                    : clamp(this.lastSmoothedScore - 0.12, 0, 1);
+
                 const dataPoint = {
-                    score: userFocus,
-                    label: timestamp.split(' ')[0],
+                    score: this.lastSmoothedScore,
+                    teamScore,
+                    label: createLabel(payload.timestamp),
                     platform: 'live',
-                    rating: userFocus > 0.6 ? 'High' : userFocus > 0.3 ? 'Medium' : 'Low'
+                    rating: this.lastSmoothedScore > 0.6 ? 'High' : this.lastSmoothedScore > 0.3 ? 'Medium' : 'Low',
+                    teammateStatus
                 };
 
-                // Push to buffers
-                this.liveDataBuffer.push(dataPoint);
+                this.liveDataBuffer.push({
+                    score: dataPoint.score,
+                    label: dataPoint.label,
+                    platform: dataPoint.platform,
+                    rating: dataPoint.rating
+                });
                 this.teamDataBuffer.push({
-                    ...dataPoint,
-                    teammate: teammateStatus
+                    score: dataPoint.teamScore,
+                    label: dataPoint.label,
+                    platform: dataPoint.platform,
+                    rating: dataPoint.rating,
+                    teammate: dataPoint.teammateStatus
                 });
 
-                // Enforce sliding window - keep max 30 data points
                 if (this.liveDataBuffer.length > this.maxDataPoints) {
                     this.liveDataBuffer.shift();
                 }
@@ -2029,7 +2108,6 @@
                     this.teamDataBuffer.shift();
                 }
 
-                // Update all chart instances with new data
                 this.updateChartsWithNewData(dataPoint);
             },
 
@@ -2037,12 +2115,10 @@
              * Smooth push of new data into Chart.js dataset arrays
              */
             updateChartsWithNewData(dataPoint) {
-                // Update main line chart (Focus Mood Live Feed)
                 if (ChartManager.lineChartInstance && ChartManager.lineChartInstance.data.datasets.length > 0) {
                     const datasets = ChartManager.lineChartInstance.data.datasets;
                     const labels = ChartManager.lineChartInstance.data.labels;
 
-                    // Push to Focus Velocity Stream (Dataset 1)
                     if (datasets[1]) {
                         datasets[1].data.push(dataPoint.score);
                         if (datasets[1].data.length > this.maxDataPoints) {
@@ -2050,16 +2126,13 @@
                         }
                     }
 
-                    // Push to System Baseline Terrain (Dataset 2)
                     if (datasets[2]) {
-                        const baselineScore = dataPoint.score * 0.3 - 0.2;
-                        datasets[2].data.push(baselineScore);
+                        datasets[2].data.push(dataPoint.score * 0.3 - 0.2);
                         if (datasets[2].data.length > this.maxDataPoints) {
                             datasets[2].data.shift();
                         }
                     }
 
-                    // Update wireframe background (Dataset 0)
                     if (datasets[0]) {
                         datasets[0].data.push(dataPoint.score * 0.15);
                         if (datasets[0].data.length > this.maxDataPoints) {
@@ -2067,45 +2140,37 @@
                         }
                     }
 
-                    // Add label
                     labels.push(dataPoint.label);
                     if (labels.length > this.maxDataPoints) {
                         labels.shift();
                     }
 
-                    // Trigger smooth update
                     ChartManager.lineChartInstance.update('none');
                 }
 
-                // Update left micro-chart (Anushka - You)
                 if (window.microChartInstances && window.microChartInstances['leftMicroChart']) {
                     const chart = window.microChartInstances['leftMicroChart'];
                     chart.data.datasets[0].data.push(dataPoint.score);
                     chart.data.labels.push(dataPoint.label);
-                    
+
                     if (chart.data.datasets[0].data.length > this.maxDataPoints) {
                         chart.data.datasets[0].data.shift();
                         chart.data.labels.shift();
                     }
-                    
+
                     chart.update('none');
                 }
 
-                // Update right micro-chart (Anushka Choudhary - Teammate)
-                // Add slight variance for teammate to show independent tracking
                 if (window.microChartInstances && window.microChartInstances['rightMicroChart']) {
                     const chart = window.microChartInstances['rightMicroChart'];
-                    const teamVariance = dataPoint.score + (Math.random() - 0.5) * 0.15;
-                    const teamScore = Math.max(0, Math.min(1, teamVariance));
-                    
-                    chart.data.datasets[0].data.push(teamScore);
+                    chart.data.datasets[0].data.push(dataPoint.teamScore);
                     chart.data.labels.push(dataPoint.label);
-                    
+
                     if (chart.data.datasets[0].data.length > this.maxDataPoints) {
                         chart.data.datasets[0].data.shift();
                         chart.data.labels.shift();
                     }
-                    
+
                     chart.update('none');
                 }
             }
