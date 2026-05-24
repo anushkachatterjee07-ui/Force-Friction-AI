@@ -5,15 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Friction AI - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        
-        :root {
-            --bg: #060910; /* Extra Deep Cyber Ink */
-            --card-bg: rgba(13, 17, 28, 0.7); /* Premium High-Contrast Obsidian Glass */
-            --card-border: rgba(255, 255, 255, 0.08);
-            --card-glow: rgba(99, 102, 241, 0.2);
-            --primary: #6366f1; /* Electric Violet */
+    <link rel="stylesheet" href="dashboard.css">
             --primary-glow: rgba(99, 102, 241, 0.4);
             --success: #30d158; /* iOS Vibrant Green */
             --warning: #ff3b30; /* iOS Vibrant Red */
@@ -35,7 +27,7 @@
             margin: 0;
             padding: 42px 32px;
             min-height: 100vh;
-            perspective: 1200px;
+            perspective: none;
             overflow-x: hidden;
             position: relative;
         }
@@ -77,7 +69,7 @@
             transform-style: preserve-3d;
             z-index: 1;
             transform-origin: top center;
-            transform: rotateX(10deg) translateY(-10px);
+            transform: none;
         }
 
         .scene::before {
@@ -354,7 +346,7 @@
                 0 26px 80px rgba(15, 23, 42, 0.32);
             overflow: hidden;
             transform-style: preserve-3d;
-            perspective: 900px;
+            perspective: none;
         }
 
         .chart-container::before {
@@ -1186,7 +1178,6 @@
             word-break: break-all;
             color: #cbd5e1;
         }
-    </style>
 </head>
 <body>
     <div class="scene">
