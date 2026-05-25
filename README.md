@@ -16,6 +16,13 @@ Force-Friction AI is a local focus tool that adds mindful friction to addictive 
 - Extension: Chrome Manifest V3 (`manifest.json`, `content.js`, `background.js`)
 - Dashboard: `dashboard.html` with vanilla HTML/CSS/JS
 
+## 🏗️ Project architecture
+- The Chrome extension intercepts navigation to supported sites and sends intent data to the backend.
+- The FastAPI backend evaluates intent, logs events to SQLite, and exposes lock state endpoints for the extension.
+- The vision engine runs locally with the webcam and sends heartbeat and focus-state updates to the backend.
+- Successful face-based focus validation triggers the backend to unlock access for the browser.
+- The dashboard is served by the backend and displays analytics from `analytics.db`.
+
 ## 📂 Project structure
 ```text
 Force-Friction-AI/
