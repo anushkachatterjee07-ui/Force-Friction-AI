@@ -1,6 +1,6 @@
-﻿# Force-Friction AI 🔒🧠
+﻿# Focus-Friction AI 🔒🧠
 
-Force-Friction AI is a local focus tool that adds mindful friction to addictive browsing. Instead of blocking sites outright, it asks why you're opening them, evaluates your intent, and uses a webcam-based attention check to decide whether to grant temporary access.
+Focus-Friction AI is a local focus tool that adds mindful friction to addictive browsing. Instead of blocking sites outright, it asks why you're opening them, evaluates your intent, and uses a webcam-based attention check to decide whether to grant temporary access.
 
 ## 🚀 What it does
 - Intercepts visits to `youtube.com` and `instagram.com` through a Chrome extension.
@@ -25,7 +25,7 @@ Force-Friction AI is a local focus tool that adds mindful friction to addictive 
 
 ## 📂 Project structure
 ```text
-Force-Friction-AI/
+Focus-Friction-AI/
 ├── .venv/               # Python virtual environment
 ├── analytics.db         # SQLite database created automatically
 ├── background.js        # Chrome Extension background script
@@ -66,7 +66,7 @@ python -m pip install fastapi uvicorn pydantic requests opencv-python
 1. Open Chrome and go to `chrome://extensions/`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
-4. Select the `Force-Friction-AI` folder
+4. Select the `Focus-Friction-AI` folder
 
 ### 6. Open the dashboard
 Visit `http://127.0.0.1:8000/dashboard`
