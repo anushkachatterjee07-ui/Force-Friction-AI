@@ -24,9 +24,8 @@ def init_db():
         pass # Column already exists
     conn.commit()
     conn.close()
-    
-    # Seed rich metrics for the dashboard charts
-    seed_sample_data()
+
+    # Dashboard metrics now come from real site activity logs only.
 
 def log_event(event_type: str, platform: str, reason: str = None):
     """
@@ -183,78 +182,38 @@ def get_all_logs():
     return logs
 
 def seed_sample_data():
-    """Seeds the database with realistic logs if no mood logs exist."""
+    """Disabled to avoid synthetic metrics. Real YouTube/Instagram activity is used instead."""
+    return
+
+
+def get_live_social_activity(limit: int = 8):
+    """Returns recent real activity from YouTube and Instagram for the dashboard."""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    
-    # Check if we already have seeded or logged mood data
-    try:
-        cursor.execute("SELECT COUNT(*) FROM focus_logs WHERE event_type = 'MOOD_LOGGED'")
-        count = cursor.fetchone()[0]
-    except sqlite3.OperationalError:
-        # If table focus_logs doesn't exist yet, we'll return and let init_db finish
-        conn.close()
-        return
-
-    if count > 0:
-        conn.close()
-        return
-
-    print("Seeding SQLite database with high-fidelity sample metrics for dashboard...")
-    import random
-    
-    now = datetime.now(timezone.utc)
-    platforms = ["www.youtube.com", "www.instagram.com"]
-    intents = ["study", "boredom"]
-    
-    for day_offset in range(7, -1, -1):
-        day_date = now - timedelta(days=day_offset)
-        num_sessions = random.randint(3, 6)
-        for _ in range(num_sessions):
-            platform = random.choice(platforms)
-            intent = random.choice(intents)
-            
-            hour = random.randint(8, 22)
-            minute = random.randint(0, 59)
-            session_time = day_date.replace(hour=hour, minute=minute).isoformat()
-            
-            # 1. Intent Logged
-            cursor.execute(
-                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
-                (session_time, "INTENT_LOGGED", platform, intent)
-            )
-            
-            # 2. Successful Unlock
-            unlock_time = (day_date.replace(hour=hour, minute=minute) + timedelta(seconds=2)).isoformat()
-            cursor.execute(
-                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
-                (unlock_time, "SUCCESSFUL_UNLOCK", platform, None)
-            )
-            
-            # 3. Session End & Duration (in seconds, e.g. 10m to 50m)
-            duration_mins = random.randint(10, 22) if intent == "boredom" else random.randint(25, 55)
-            duration_secs = duration_mins * 60
-            end_time = (day_date.replace(hour=hour, minute=minute) + timedelta(minutes=duration_mins)).isoformat()
-            cursor.execute(
-                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
-                (end_time, "SESSION_ENDED", platform, f"{intent}:{duration_secs}")
-            )
-            
-            # 4. Mood Logged
-            if intent == "study":
-                mood = random.choices(["Better", "Same", "Worse"], weights=[75, 15, 10])[0]
-            else:
-                mood = random.choices(["Better", "Same", "Worse"], weights=[10, 25, 65])[0]
-                
-            mood_time = (day_date.replace(hour=hour, minute=minute) + timedelta(minutes=duration_mins, seconds=5)).isoformat()
-            cursor.execute(
-                "INSERT INTO focus_logs (timestamp, event_type, platform, reason) VALUES (?, ?, ?, ?)",
-                (mood_time, "MOOD_LOGGED", platform, f"{intent}:{mood}")
-            )
-            
-    conn.commit()
+    cursor.execute(
+        """
+        SELECT timestamp, event_type, platform, reason
+        FROM focus_logs
+        WHERE lower(platform) LIKE '%youtube.com%' OR lower(platform) LIKE '%instagram.com%'
+        ORDER BY id DESC
+        LIMIT ?
+        """,
+        (limit,)
+    )
+    rows = cursor.fetchall()
     conn.close()
-    print("Database seeding completed.")
+
+    items = []
+    for timestamp, event_type, platform, reason in rows:
+        platform_name = platform.replace('www.', '') if platform else 'Live social site'
+        items.append({
+            'timestamp': timestamp,
+            'event_type': event_type,
+            'platform': platform_name,
+            'reason': reason or 'live activity'
+        })
+
+    return {'items': items, 'count': len(items)}
 
 # Self-initialize on import so the DB file is automatically created on startup
 init_db()

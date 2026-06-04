@@ -410,8 +410,15 @@ function showIntentPrompt() {
         const reason = btn.dataset.reason;
 
         if (reason === "Study") {
+            // Capture the current video ID as the allowed whitelist
+            captureAllowedVideoId();
+            
             setStudyVerificationLoading();
             startVerifyFocusPolling();
+            
+            // Start monitoring for whitelist breaches during active study session
+            startStudyModeUrlMonitoring();
+            
             try {
                 await fetch("http://127.0.0.1:8000/log-intent", {
                     method: "POST",
@@ -475,6 +482,11 @@ function startFrictionTimer() {
         </div>
     `;
     
+    // Clear any existing friction timer
+    if (window.focusFrictionCleanupHandles.frictionTimer) {
+        clearInterval(window.focusFrictionCleanupHandles.frictionTimer);
+    }
+    
     setTimeout(() => {
         const prog = document.getElementById("friction-progress");
         if(prog) prog.style.width = "0%";
@@ -487,10 +499,13 @@ function startFrictionTimer() {
         if(timerEl) timerEl.innerText = `Unlocking in ${seconds}s...`;
         if (seconds <= 0) {
             clearInterval(timer);
+            window.focusFrictionCleanupHandles.frictionTimer = null;
             fetch("http://127.0.0.1:8000/api/unlock", {method:"POST"})
                 .finally(() => removeBarrier());
         }
     }, 1000);
+    
+    window.focusFrictionCleanupHandles.frictionTimer = timer;
 }
 
 function ensureFocusWarningStyles() {
@@ -608,9 +623,159 @@ function requestFocusState() {
     });
 }
 
+// Global tracking for all polling intervals and timers
+window.focusFrictionCleanupHandles = {
+    focusStateInterval: null,
+    verifyFocusInterval: null,
+    frictionTimer: null,
+    barrierCleanupTimer: null,
+    urlMonitorInterval: null,
+    lastCheckedUrl: null
+};
+
+// Single-Video Whitelist Lock Functions
+function extractVideoId(url) {
+    try {
+        const urlObj = new URL(url);
+        return urlObj.searchParams.get('v') || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function captureAllowedVideoId() {
+    const videoId = extractVideoId(window.location.href);
+    if (videoId) {
+        chrome.storage.local.set({ allowedVideoId: videoId }, () => {
+            console.log('[Focus Friction] Captured allowed video ID for Study mode:', videoId);
+        });
+    }
+}
+
+function getAllowedVideoId(callback) {
+    chrome.storage.local.get(['allowedVideoId'], (result) => {
+        callback(result.allowedVideoId || null);
+    });
+}
+
+function clearAllowedVideoId(callback) {
+    chrome.storage.local.remove(['allowedVideoId'], () => {
+        console.log('[Focus Friction] Cleared allowed video ID');
+        if (callback) callback();
+    });
+}
+
+function isVideoWhitelistBreach(callback) {
+    // Check 1: Are we on /shorts/?
+    if (window.location.pathname.includes('/shorts/')) {
+        callback({ breach: true, reason: 'shorts', detail: 'YouTube Shorts detected' });
+        return;
+    }
+    
+    // Check 2: Has the video ID changed?
+    getAllowedVideoId((allowedId) => {
+        if (!allowedId) {
+            callback({ breach: false });
+            return;
+        }
+        
+        const currentId = extractVideoId(window.location.href);
+        if (currentId && currentId !== allowedId) {
+            callback({ breach: true, reason: 'video_change', detail: `Switched from ${allowedId} to ${currentId}` });
+        } else if (!currentId && !window.location.pathname.includes('/watch')) {
+            callback({ breach: true, reason: 'navigation', detail: 'Left study video page' });
+        } else {
+            callback({ breach: false });
+        }
+    });
+}
+
+function showStudyModeLockedWarning(breachReason) {
+    if (document.getElementById("binary-souls-barrier")) return;
+
+    const barrier = document.createElement("div");
+    barrier.id = "binary-souls-barrier";
+    
+    let warningTitle = "Study Mode Lock Active";
+    let warningMessage = "Focus Friction Alert: You are in active Study Mode. Please stick to your declared learning resource. Other videos and Shorts are locked to prevent doomscrolling.";
+    let warningEmoji = "🔐";
+    
+    if (breachReason === 'shorts') {
+        warningTitle = "Shorts Not Allowed";
+        warningMessage = "Focus Friction Alert: You are in active Study Mode. YouTube Shorts are blocked to prevent doomscrolling. Please return to your study video.";
+        warningEmoji = "🚫";
+    } else if (breachReason === 'video_change') {
+        warningTitle = "Video Switch Blocked";
+        warningMessage = "Focus Friction Alert: You are in active Study Mode. Please stick to your declared learning resource. Switching to different videos is locked to prevent doomscrolling.";
+        warningEmoji = "⚠️";
+    } else if (breachReason === 'navigation') {
+        warningTitle = "Navigation Blocked";
+        warningMessage = "Focus Friction Alert: You are in active Study Mode. Navigating away from your study video is blocked. Return to your learning resource.";
+        warningEmoji = "🔒";
+    }
+    
+    barrier.innerHTML = `
+        <div class="ff-overlay-card">
+            <div class="ff-header-bento" style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">${warningEmoji}</div>
+                <h1 style="color: #ef4444; margin: 0;">${warningTitle}</h1>
+            </div>
+            <div style="grid-column: span 2; padding: 24px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 16px; text-align: center;">
+                <p style="margin: 0; color: #94A3BB; font-size: 15px; line-height: 1.6;">
+                    ${warningMessage}
+                </p>
+            </div>
+            <button id="study-mode-return-btn" class="ff-btn" style="grid-column: span 2; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); cursor: pointer;">
+                <span style="font-size: 24px;">← Return to Study</span>
+            </button>
+            <div class="ff-footer">
+                <div class="ff-badge">
+                    <span class="ff-dot"></span>
+                    Study Mode Active
+                </div>
+            </div>
+        </div>
+    `;
+    
+    Object.assign(barrier.style, {
+        position:"fixed", top:"0", left:"0", width:"100vw", height:"100vh",
+        backgroundColor:"rgba(8, 10, 16, 0.88)", zIndex:"2147483647", display:"flex",
+        justifyContent:"center", alignItems:"center",
+        backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
+        transition:"opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        opacity:"1"
+    });
+    
+    document.body.appendChild(barrier);
+    
+    // Add return button handler
+    const returnBtn = document.getElementById('study-mode-return-btn');
+    if (returnBtn) {
+        returnBtn.onclick = () => {
+            barrier.style.opacity = "0";
+            setTimeout(() => {
+                const b = document.getElementById("binary-souls-barrier");
+                if (b) b.remove();
+                window.history.back();
+            }, 400);
+        };
+    }
+}
+
 function startFocusStatePolling() {
     requestFocusState();
-    setInterval(requestFocusState, 2000);
+    // Clear any existing interval before creating a new one
+    if (window.focusFrictionCleanupHandles.focusStateInterval) {
+        clearInterval(window.focusFrictionCleanupHandles.focusStateInterval);
+    }
+    window.focusFrictionCleanupHandles.focusStateInterval = setInterval(requestFocusState, 2000);
+}
+
+function stopFocusStatePolling() {
+    if (window.focusFrictionCleanupHandles.focusStateInterval) {
+        clearInterval(window.focusFrictionCleanupHandles.focusStateInterval);
+        window.focusFrictionCleanupHandles.focusStateInterval = null;
+    }
 }
 
 function showToast(msg) {
@@ -656,7 +821,13 @@ function clearYouTubeBlurStyles() {
 
 function startVerifyFocusPolling() {
     const barrier = document.getElementById("binary-souls-barrier");
-    if (!barrier || barrier.dataset.verifyFocusInterval) return;
+    if (!barrier) return;
+
+    // Clean up any previous verify-focus interval
+    if (window.focusFrictionCleanupHandles.verifyFocusInterval) {
+        clearInterval(window.focusFrictionCleanupHandles.verifyFocusInterval);
+        window.focusFrictionCleanupHandles.verifyFocusInterval = null;
+    }
 
     const intervalId = window.setInterval(async () => {
         try {
@@ -684,25 +855,89 @@ function startVerifyFocusPolling() {
             
             if (data.verified) {
                 window.clearInterval(intervalId);
-                delete barrier.dataset.verifyFocusInterval;
+                window.focusFrictionCleanupHandles.verifyFocusInterval = null;
                 clearYouTubeBlurStyles();
                 barrier.style.transition = "opacity 0.35s ease";
                 barrier.style.opacity = "0";
-                setTimeout(() => barrier.remove(), 420);
+                
+                // Clear any pending timers
+                if (window.focusFrictionCleanupHandles.barrierCleanupTimer) {
+                    clearTimeout(window.focusFrictionCleanupHandles.barrierCleanupTimer);
+                }
+                window.focusFrictionCleanupHandles.barrierCleanupTimer = setTimeout(() => {
+                    const b = document.getElementById("binary-souls-barrier");
+                    if (b) b.remove();
+                }, 420);
             }
         } catch (err) {
             console.debug("Verify-focus polling failed:", err);
         }
     }, 1000);
 
-    barrier.dataset.verifyFocusInterval = intervalId;
+    window.focusFrictionCleanupHandles.verifyFocusInterval = intervalId;
+}
+
+function stopVerifyFocusPolling() {
+    if (window.focusFrictionCleanupHandles.verifyFocusInterval) {
+        clearInterval(window.focusFrictionCleanupHandles.verifyFocusInterval);
+        window.focusFrictionCleanupHandles.verifyFocusInterval = null;
+    }
+}
+
+function startStudyModeUrlMonitoring() {
+    // Clear any existing monitoring interval
+    if (window.focusFrictionCleanupHandles.urlMonitorInterval) {
+        clearInterval(window.focusFrictionCleanupHandles.urlMonitorInterval);
+    }
+    
+    window.focusFrictionCleanupHandles.lastCheckedUrl = window.location.href;
+    
+    window.focusFrictionCleanupHandles.urlMonitorInterval = setInterval(() => {
+        // Check if URL has changed
+        if (window.location.href !== window.focusFrictionCleanupHandles.lastCheckedUrl) {
+            window.focusFrictionCleanupHandles.lastCheckedUrl = window.location.href;
+            
+            // Check for whitelist breach
+            isVideoWhitelistBreach((result) => {
+                if (result.breach) {
+                    console.log('[Focus Friction] Whitelist breach detected:', result.detail);
+                    showStudyModeLockedWarning(result.reason);
+                }
+            });
+        }
+    }, 1000);
+    
+    console.log('[Focus Friction] Study mode URL monitoring started');
+}
+
+function stopStudyModeUrlMonitoring() {
+    if (window.focusFrictionCleanupHandles.urlMonitorInterval) {
+        clearInterval(window.focusFrictionCleanupHandles.urlMonitorInterval);
+        window.focusFrictionCleanupHandles.urlMonitorInterval = null;
+    }
+    clearAllowedVideoId();
+    console.log('[Focus Friction] Study mode URL monitoring stopped');
 }
 
 function removeBarrier() {
     const barrier = document.getElementById("binary-souls-barrier");
     if (barrier) { 
-        barrier.style.opacity = "0"; 
-        setTimeout(() => barrier.remove(), 500); 
+        // Stop verify-focus polling before removing barrier
+        stopVerifyFocusPolling();
+        
+        // Stop study mode URL monitoring
+        stopStudyModeUrlMonitoring();
+        
+        barrier.style.opacity = "0";
+        
+        // Clear any pending timers
+        if (window.focusFrictionCleanupHandles.barrierCleanupTimer) {
+            clearTimeout(window.focusFrictionCleanupHandles.barrierCleanupTimer);
+        }
+        window.focusFrictionCleanupHandles.barrierCleanupTimer = setTimeout(() => {
+            const b = document.getElementById("binary-souls-barrier");
+            if (b) b.remove();
+        }, 500); 
     }
 }
 
@@ -715,6 +950,45 @@ let lastUrl = location.href;
 new MutationObserver(() => {
     if (location.href !== lastUrl) {
         lastUrl = location.href;
-        setTimeout(() => showIntentPrompt(), 1000);
+        
+        // Clean up all timers before re-injecting barrier on SPA navigation
+        if (window.focusFrictionCleanupHandles.verifyFocusInterval) {
+            clearInterval(window.focusFrictionCleanupHandles.verifyFocusInterval);
+            window.focusFrictionCleanupHandles.verifyFocusInterval = null;
+        }
+        if (window.focusFrictionCleanupHandles.frictionTimer) {
+            clearInterval(window.focusFrictionCleanupHandles.frictionTimer);
+            window.focusFrictionCleanupHandles.frictionTimer = null;
+        }
+        if (window.focusFrictionCleanupHandles.barrierCleanupTimer) {
+            clearTimeout(window.focusFrictionCleanupHandles.barrierCleanupTimer);
+            window.focusFrictionCleanupHandles.barrierCleanupTimer = null;
+        }
+        
+        // Check for whitelist breach if study mode is active
+        getAllowedVideoId((allowedId) => {
+            if (allowedId) {
+                // Study mode is active, check for breaches
+                isVideoWhitelistBreach((result) => {
+                    if (result.breach) {
+                        console.log('[Focus Friction] Study mode whitelist breach on SPA nav:', result.detail);
+                        const oldBarrier = document.getElementById("binary-souls-barrier");
+                        if (oldBarrier) oldBarrier.remove();
+                        showStudyModeLockedWarning(result.reason);
+                        return;
+                    }
+                    
+                    // No breach, proceed with normal re-injection
+                    const oldBarrier = document.getElementById("binary-souls-barrier");
+                    if (oldBarrier) oldBarrier.remove();
+                    setTimeout(() => showIntentPrompt(), 1000);
+                });
+            } else {
+                // No study mode, proceed normally
+                const oldBarrier = document.getElementById("binary-souls-barrier");
+                if (oldBarrier) oldBarrier.remove();
+                setTimeout(() => showIntentPrompt(), 1000);
+            }
+        });
     }
 }).observe(document, {subtree: true, childList: true});

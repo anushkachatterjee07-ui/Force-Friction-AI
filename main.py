@@ -176,6 +176,13 @@ async def get_analytics():
     """
     return database.get_analytics_summary()
 
+@app.get("/api/live-social")
+async def get_live_social():
+    """
+    Retrieve recent real YouTube/Instagram activity for the dashboard.
+    """
+    return database.get_live_social_activity()
+
 class IntentRequest(BaseModel):
     site: str
     reason: str
@@ -251,9 +258,10 @@ def evaluate_intent(site, reason, visits_2h):
         return "allow"
     
     if is_doomscrolling:
-        if visits_2h >= 5: return "friction"
-        if 2 <= visits_2h <= 4: return "nudge"
-        return "friction" if visits_2h > 4 else "allow" # Safety fallback
+        # Doomscrolling detection: >=4 visits trigger friction (not 5+)
+        if visits_2h >= 4: return "friction"
+        if visits_2h == 2 or visits_2h == 3: return "nudge"
+        return "allow"
     
     return "allow"
 
